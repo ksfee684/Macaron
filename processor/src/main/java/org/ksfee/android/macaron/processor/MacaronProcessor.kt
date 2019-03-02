@@ -4,10 +4,10 @@ import com.google.auto.common.BasicAnnotationProcessor
 import com.google.auto.service.AutoService
 import com.google.common.collect.SetMultimap
 import org.ksfee.android.macaron.annotation.Collection
-import org.ksfee.android.macaron.processor.generator.CollectionModel
-import org.ksfee.android.macaron.processor.generator.CollectionQuery
-import org.ksfee.android.macaron.processor.generator.CollectionWriter
+import org.ksfee.android.macaron.processor.generator.CoreGenerator
+import org.ksfee.android.macaron.processor.generator.GeneratorContext
 import java.io.File
+import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.Processor
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.Element
@@ -31,7 +31,8 @@ class MacaronProcessor : BasicAnnotationProcessor() {
         return mutableListOf(
             MacaronProcessingStep(
                 processingEnv.elementUtils,
-                outDir
+                outDir,
+                processingEnv
             )
         )
     }
@@ -43,7 +44,8 @@ class MacaronProcessor : BasicAnnotationProcessor() {
 
 class MacaronProcessingStep(
     private val elementUtils: Elements,
-    private val outDir: File
+    private val outDir: File,
+    private val processingEnvironment: ProcessingEnvironment
 ) : BasicAnnotationProcessor.ProcessingStep {
 
     override fun annotations() = mutableSetOf(Collection::class.java)
@@ -52,17 +54,10 @@ class MacaronProcessingStep(
         elementsByAnnotation ?: return mutableSetOf()
 
         elementsByAnnotation[Collection::class.java]
-            .map {
-                System.out.print("kind is ${it.kind}")
-                it
-            }
             .filter { it.kind === ElementKind.CLASS }
             .filter { it is TypeElement }
-            .map { CollectionModel(it as TypeElement, elementUtils) }
-            .forEach {
-                CollectionWriter(it, outDir).write()
-                CollectionQuery(it, outDir).write()
-            }
+            .map { GeneratorContext(it as TypeElement, elementUtils, processingEnvironment, outDir) }
+            .forEach { CoreGenerator(it).generate() }
 
         return mutableSetOf()
     }

@@ -2,51 +2,45 @@ package org.ksfee.android.macaron.processor.generator
 
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import java.io.File
-import javax.annotation.processing.ProcessingEnvironment
 
 class CollectionSerializer(
-    val collectionModel: CollectionModel,
-    val outDir: File,
-    val processingEnvironment: ProcessingEnvironment
+    val model: CollectionModel
 ) {
 
-    private val packageName: String = collectionModel.elementUtils.getPackageOf(collectionModel.element).toString()
-
-    private val className: String = collectionModel.element.simpleName.toString() + SERIALIZER_CLASS_SUFFIX
+    private val className: String = model.className + SERIALIZER_CLASS_SUFFIX
 
     fun write() {
-        val file = FileSpec.builder(packageName, className)
+        val file = FileSpec.builder(model.packageName, className)
             .addType(buildSerializer())
             .addType(buildValidator())
             .build()
 
-        file.writeTo(outDir)
+        file.writeTo(model.context.outDir)
     }
 
     private fun buildSerializer(): TypeSpec {
-        return TypeSpec.objectBuilder("${collectionModel.className}Serializer")
+        return TypeSpec.objectBuilder("${model.className}Serializer")
             .addFunction(buildSerializeFunc())
             .build()
     }
 
     private fun buildSerializeFunc(): FunSpec {
-        val parameters = collectionModel.fields.map {
+        val parameters = model.fields.joinToString(", \n") {
             "data.getTypedValue(\"${it.simpleName}\") as ${it.javaToKotlinType()}"
-        }.joinToString(", \n")
+        }
 
         return FunSpec.builder("serialize")
-            .returns(collectionModel.element.asClassName())
+            .returns(model.type)
             .addParameter("data", Map::class.asClassName().parameterizedBy(String::class.asTypeName(), Any::class.asTypeName()))
             .addStatement("%N.%N(data)", buildValidator(), buildValidateMethod())
-            .addStatement("return %T(", collectionModel.element.javaToKotlinType())
+            .addStatement("return %T(", model.type)
             .addStatement(parameters)
             .addStatement(")")
             .build()
     }
 
     private fun buildValidator(): TypeSpec {
-        return TypeSpec.objectBuilder("${collectionModel.className}Validator")
+        return TypeSpec.objectBuilder("${model.className}Validator")
             .addFunction(buildValidateMethod())
             .build()
     }
@@ -54,7 +48,7 @@ class CollectionSerializer(
     private fun buildValidateMethod(): FunSpec {
         val args = mutableListOf<Any>()
 
-        val statement = collectionModel.fields.map {
+        val statement = model.fields.map {
             args.add(it.simpleName)
             args.add(it.javaToKotlinType(false))
             "%S to %T::class"

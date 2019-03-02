@@ -1,26 +1,43 @@
 package org.ksfee.android.macaron.processor.generator
 
-import com.squareup.kotlinpoet.FileSpec
-import com.squareup.kotlinpoet.TypeSpec
-import java.io.File
+import com.squareup.kotlinpoet.*
 
 class CollectionWriter(
-    collectionModel: CollectionModel,
-    private val outDir: File
+    private val collectionModel: CollectionModel
 ) {
-
-    private val packageName: String = collectionModel.elementUtils.getPackageOf(collectionModel.element).toString()
-
-    private val className: String = collectionModel.element.simpleName.toString() + WRITER_CLASS_SUFFIX
+    private val className: String = collectionModel.className + WRITER_CLASS_SUFFIX
 
     fun write() {
-        val file = FileSpec.builder(packageName, className)
+        val file = FileSpec.builder(collectionModel.packageName, className)
             .addType(
-                TypeSpec.classBuilder(className).build()
+                TypeSpec.classBuilder(className)
+                        .addProperties(buildProperties())
+                        .addFunctions(buildWriteFunctions())
+                        .build()
             )
             .build()
 
-        file.writeTo(outDir)
+        file.writeTo(collectionModel.context.outDir)
+    }
+
+    fun buildProperties(): List<PropertySpec> {
+        return emptyList()
+    }
+
+    fun buildWriteFunctions(): List<FunSpec> {
+        val functions = mutableListOf<FunSpec>()
+
+        val builder = FunSpec.builder("create")
+
+
+
+        collectionModel.fields.forEach {
+            builder.addParameter(it.simpleName.toString(), it.asType().asTypeName())
+        }
+
+        functions.add(builder.build())
+
+        return functions
     }
 
     companion object {
