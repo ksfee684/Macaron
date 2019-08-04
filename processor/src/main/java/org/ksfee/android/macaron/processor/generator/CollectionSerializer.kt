@@ -11,6 +11,7 @@ class CollectionSerializer(
 
     fun write() {
         val file = FileSpec.builder(model.packageName, className)
+            .addImport("org.ksfee.android.macaron.library", "typedValue")
             .addType(buildSerializer())
             .addType(buildValidator())
             .build()
@@ -26,7 +27,7 @@ class CollectionSerializer(
 
     private fun buildSerializeFunc(): FunSpec {
         val parameters = model.fields.joinToString(", \n") {
-            "data.getTypedValue(\"${it.simpleName}\") as ${it.javaToKotlinType()}"
+            "data.typedValue(\"${it.simpleName}\") as ${it.javaToKotlinType()}"
         }
 
         return FunSpec.builder("serialize")
