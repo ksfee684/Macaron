@@ -4,10 +4,10 @@ import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 
 class CollectionSerializer(
-    val model: CollectionModel
+    private val model: CollectionModel
 ) {
 
-    private val className: String = model.className + SERIALIZER_CLASS_SUFFIX
+    val className: String = model.className + SERIALIZER_CLASS_SUFFIX
 
     fun write() {
         val file = FileSpec.builder(model.packageName, className)

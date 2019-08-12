@@ -1,7 +1,7 @@
 package org.ksfee.android.macaron.processor.generator
 
 class CoreGenerator(
-    val context: GeneratorContext
+    context: GeneratorContext
 ) {
 
     private val collectionModel = CollectionModel(context)
