@@ -9,6 +9,6 @@ class CoreGenerator(
     fun generate() {
         val serializer = CollectionSerializer(collectionModel).apply { write() }
         CollectionQuery(collectionModel, serializer).write()
-        CollectionWriter(collectionModel).write()
+        CollectionWriter(collectionModel, serializer).write()
     }
 }
