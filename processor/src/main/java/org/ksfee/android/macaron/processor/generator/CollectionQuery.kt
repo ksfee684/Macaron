@@ -51,11 +51,11 @@ class CollectionQuery(
     }
 
     fun buildGetFunc(): FunSpec = FunSpec.builder("get").run {
-        addParameter("onSuccessListener", ClassName("com.google.android.gms.tasks", "OnSuccessListener").parameterizedBy(model.type).copy(nullable = true))
+        addParameter("onSuccessListener", ClassName("com.google.android.gms.tasks", "OnSuccessListener").parameterizedBy(List::class.asTypeName().parameterizedBy(model.type)).copy(nullable = true))
         addParameter("onFailureListener", ClassName("com.google.android.gms.tasks", "OnFailureListener").copy(nullable = true))
         addParameter("onCanceledListener", ClassName("com.google.android.gms.tasks", "OnCanceledListener").copy(nullable = true))
         beginControlFlow("query.get().apply {")
-        addStatement("onSuccessListener?.let { addOnSuccessListener { it.map { %N.serialize(it.data) } } }", serializer.className)
+        addStatement("addOnSuccessListener { onSuccessListener?.onSuccess(it.map { %N.serialize(it.data) }) }", serializer.className)
         addStatement("onFailureListener?.let { addOnFailureListener(it) }")
         addStatement("onCanceledListener?.let { addOnCanceledListener(it) }")
         endControlFlow()
