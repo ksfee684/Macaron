@@ -25,17 +25,15 @@ android {
 
 dependencies {
     api project(':annotation')
-    api('com.google.firebase:firebase-firestore:18.0.1') {
+    api(Firebase.FireStore) {
         exclude group: 'com.android.support'
     }
-    api "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    api Kotlin.Reflect
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation Kotlin.StdLib
+    implementation Jetpack.AppCompat
 
-    implementation 'androidx.appcompat:appcompat:1.0.2'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test:runner:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+    testImplementation TestLib.JUnit
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
