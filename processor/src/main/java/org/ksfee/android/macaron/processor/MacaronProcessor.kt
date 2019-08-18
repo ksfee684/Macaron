@@ -15,6 +15,7 @@ import javax.lang.model.element.ElementKind
 import javax.lang.model.element.TypeElement
 import javax.lang.model.util.Elements
 
+@Suppress("unused")
 @AutoService(Processor::class)
 class MacaronProcessor : BasicAnnotationProcessor() {
 
@@ -55,8 +56,8 @@ class MacaronProcessingStep(
 
         elementsByAnnotation[Collection::class.java]
             .filter { it.kind === ElementKind.CLASS }
-            .filter { it is TypeElement }
-            .map { GeneratorContext(it as TypeElement, elementUtils, processingEnvironment, outDir) }
+            .filterIsInstance<TypeElement>()
+            .map { GeneratorContext(it, elementUtils, processingEnvironment, outDir) }
             .forEach { CoreGenerator(it).generate() }
 
         return mutableSetOf()

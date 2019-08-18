@@ -1,4 +1,4 @@
-package org.ksfee.android.macaron.processor.generator
+package org.ksfee.android.macaron.processor.generator.ext
 
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.ParameterizedTypeName
@@ -10,7 +10,7 @@ import kotlin.reflect.jvm.internal.impl.builtins.jvm.JavaToKotlinClassMap
 import kotlin.reflect.jvm.internal.impl.name.FqName
 
 fun Element.javaToKotlinType(recursive: Boolean = true): TypeName =
-        asType().asTypeName().javaToKotlinType(recursive)
+    asType().asTypeName().javaToKotlinType(recursive)
 
 fun TypeName.javaToKotlinType(recursive: Boolean): TypeName = if (this is ParameterizedTypeName) {
     if (recursive) {
@@ -22,7 +22,7 @@ fun TypeName.javaToKotlinType(recursive: Boolean): TypeName = if (this is Parame
     }
 } else {
     val className = JavaToKotlinClassMap.INSTANCE
-            .mapJavaToKotlin(FqName(toString()))?.asSingleFqName()?.asString()
+        .mapJavaToKotlin(FqName(toString()))?.asSingleFqName()?.asString()
     if (className == null) this
     else ClassName.bestGuess(className)
 }
