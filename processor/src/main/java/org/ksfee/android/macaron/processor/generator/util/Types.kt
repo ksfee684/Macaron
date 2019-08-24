@@ -18,6 +18,8 @@ object Types {
         ClassName("com.google.android.gms.tasks", "OnCanceledListener")
 
     // library module
-    val TypeValue =
+    val TypedValue =
         ClassName("org.ksfee.android.macaron.library.ext", "typedValue")
+    val TypedNullableValue =
+        ClassName("org.ksfee.android.macaron.library.ext", "typedNullableValue")
 }

@@ -3,6 +3,7 @@ package org.ksfee.android.macaron.processor.generator
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import org.ksfee.android.macaron.annotation.Field
+import org.ksfee.android.macaron.processor.generator.ext.isNullable
 import org.ksfee.android.macaron.processor.generator.ext.javaToKotlinType
 import org.ksfee.android.macaron.processor.generator.model.CollectionModel
 import org.ksfee.android.macaron.processor.generator.util.Types
@@ -16,7 +17,6 @@ class CollectionQueryWriter(
     override fun write() {
         FileSpec.builder(model.packageName, objectName).apply {
             indent(DEFAULT_INDENT)
-            addImport(Types.TypeValue.packageName, Types.TypeValue.simpleName)
             addType(buildQueryType())
         }.build().writeTo(model.context.outDir)
     }
@@ -54,14 +54,20 @@ class CollectionQueryWriter(
         val parameters = model.fields
             .apply {
                 forEach {
-                    parameterArgs.add(
-                        MemberName(Types.TypeValue.packageName, Types.TypeValue.simpleName)
-                    )
-                    parameterArgs.add(it.simpleName)
+                    val retrieveMethod = if (it.isNullable()) {
+                        MemberName(
+                            Types.TypedNullableValue.packageName,
+                            Types.TypedNullableValue.simpleName
+                        )
+                    } else {
+                        MemberName(Types.TypedValue.packageName, Types.TypedValue.simpleName)
+                    }
+                    parameterArgs.add(retrieveMethod)
                     parameterArgs.add(it.javaToKotlinType())
+                    parameterArgs.add(it.simpleName)
                 }
             }
-            .joinToString(", ") { "${it.simpleName} = data.%M(%S) as %T" }
+            .joinToString(", ") { "${it.simpleName} = data.%M<%T>(%S)" }
 
         return FunSpec.builder("deserialize").apply {
             returns(model.type)

@@ -9,11 +9,14 @@ object Version {
     const val Espresso = "3.2.0"
     const val AutoService = "1.0-rc6"
     const val KotlinPoet = "1.3.0"
+    const val MockitoKotlin = "2.1.0"
+    const val JetbrainsAnnotation = "16.0.2"
 }
 
 object Kotlin {
     const val StdLib = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${Version.Kotlin}"
     const val Reflect = "org.jetbrains.kotlin:kotlin-reflect:${Version.Kotlin}"
+    const val Annotation = "org.jetbrains:annotations:${Version.JetbrainsAnnotation}"
 }
 
 object Jetpack {
@@ -35,4 +38,5 @@ object AptLib {
 
 object TestLib {
     const val JUnit = "junit:junit:${Version.JUnit}"
+    const val MockitoKotlin = "com.nhaarman.mockitokotlin2:mockito-kotlin:${Version.MockitoKotlin}"
 }
