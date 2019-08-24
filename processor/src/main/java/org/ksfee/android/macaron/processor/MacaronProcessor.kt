@@ -4,8 +4,10 @@ import com.google.auto.common.BasicAnnotationProcessor
 import com.google.auto.service.AutoService
 import com.google.common.collect.SetMultimap
 import org.ksfee.android.macaron.annotation.Collection
-import org.ksfee.android.macaron.processor.generator.CoreGenerator
+import org.ksfee.android.macaron.processor.generator.CollectionCreatorWriter
+import org.ksfee.android.macaron.processor.generator.CollectionQueryWriter
 import org.ksfee.android.macaron.processor.generator.GeneratorContext
+import org.ksfee.android.macaron.processor.generator.model.CollectionModel
 import java.io.File
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.Processor
@@ -51,15 +53,29 @@ class MacaronProcessingStep(
 
     override fun annotations() = mutableSetOf(Collection::class.java)
 
-    override fun process(elementsByAnnotation: SetMultimap<Class<out Annotation>, Element>?): MutableSet<Element> {
+    override fun process(
+        elementsByAnnotation: SetMultimap<Class<out Annotation>, Element>?
+    ): MutableSet<Element> {
         elementsByAnnotation ?: return mutableSetOf()
 
         elementsByAnnotation[Collection::class.java]
             .filter { it.kind === ElementKind.CLASS }
             .filterIsInstance<TypeElement>()
             .map { GeneratorContext(it, elementUtils, processingEnvironment, outDir) }
-            .forEach { CoreGenerator(it).generate() }
+            .map { CollectionModel(it) }
+            .forEach {
+                buildCreators(it)
+                buildQueries(it)
+            }
 
         return mutableSetOf()
+    }
+
+    private fun buildCreators(collectionModel: CollectionModel) {
+        CollectionCreatorWriter(collectionModel).write()
+    }
+
+    private fun buildQueries(collectionModel: CollectionModel) {
+        CollectionQueryWriter(collectionModel).write()
     }
 }

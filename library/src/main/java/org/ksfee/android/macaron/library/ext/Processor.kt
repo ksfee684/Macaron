@@ -1,4 +1,4 @@
-package org.ksfee.android.macaron.library
+package org.ksfee.android.macaron.library.ext
 
 inline fun <reified T> Map<String, Any>.typedValue(key: String): T {
     this[key]?.let {
