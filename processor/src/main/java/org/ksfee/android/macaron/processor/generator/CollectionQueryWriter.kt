@@ -113,12 +113,17 @@ class CollectionQueryWriter(
         )
         addParameter("onFailureListener", Types.OnFailureListener.copy(nullable = true))
         addParameter("onCanceledListener", Types.OnCanceledListener.copy(nullable = true))
-        beginControlFlow("query?.get()?.apply {")
-        addStatement("addOnSuccessListener { onSuccessListener?.onSuccess(it.map { deserialize(it.data) }) }")
-        addStatement("onFailureListener?.let { addOnFailureListener(it) }")
-        addStatement("onCanceledListener?.let { addOnCanceledListener(it) }")
-        endControlFlow()
-        addStatement("?: throw %T(%S)", IllegalStateException::class, "Query doesn't set yet.")
+        addCode("""
+            query?.get()?.apply {
+                addOnSuccessListener { onSuccessListener?.onSuccess(it.map { deserialize(it.data) }) }
+                onFailureListener?.let { addOnFailureListener(it) }
+                onCanceledListener?.let { addOnCanceledListener(it) }
+            } ?: throw %T(%S)
+        """.trimIndent(),
+            IllegalStateException::class,
+            "Query doesn't set yet."
+        )
+        addStatement("")
     }.build()
 
     companion object {

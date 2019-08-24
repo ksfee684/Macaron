@@ -4,9 +4,7 @@ import com.google.auto.common.BasicAnnotationProcessor
 import com.google.auto.service.AutoService
 import com.google.common.collect.SetMultimap
 import org.ksfee.android.macaron.annotation.Collection
-import org.ksfee.android.macaron.processor.generator.CollectionCreatorWriter
-import org.ksfee.android.macaron.processor.generator.CollectionQueryWriter
-import org.ksfee.android.macaron.processor.generator.GeneratorContext
+import org.ksfee.android.macaron.processor.generator.*
 import org.ksfee.android.macaron.processor.generator.model.CollectionModel
 import java.io.File
 import javax.annotation.processing.ProcessingEnvironment
@@ -64,18 +62,28 @@ class MacaronProcessingStep(
             .map { GeneratorContext(it, elementUtils, processingEnvironment, outDir) }
             .map { CollectionModel(it) }
             .forEach {
-                buildCreators(it)
-                buildQueries(it)
+                buildCreator(it)
+                buildQuerie(it)
+                buildUpdater(it)
+                buildDeleter(it)
             }
 
         return mutableSetOf()
     }
 
-    private fun buildCreators(collectionModel: CollectionModel) {
+    private fun buildCreator(collectionModel: CollectionModel) {
         CollectionCreatorWriter(collectionModel).write()
     }
 
-    private fun buildQueries(collectionModel: CollectionModel) {
+    private fun buildQuerie(collectionModel: CollectionModel) {
         CollectionQueryWriter(collectionModel).write()
+    }
+
+    private fun buildUpdater(collectionModel: CollectionModel) {
+        CollectionUpdaterWriter(collectionModel).write()
+    }
+
+    private fun buildDeleter(collectionModel: CollectionModel) {
+        CollectionDeleterWriter(collectionModel).write()
     }
 }
