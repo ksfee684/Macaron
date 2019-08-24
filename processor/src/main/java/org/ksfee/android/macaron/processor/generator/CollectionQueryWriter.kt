@@ -18,11 +18,10 @@ class CollectionQueryWriter(
             indent(DEFAULT_INDENT)
             addImport(Types.TypeValue.packageName, Types.TypeValue.simpleName)
             addType(buildQueryType())
-            build().writeTo(model.context.outDir)
-        }
+        }.build().writeTo(model.context.outDir)
     }
 
-    private fun buildQueryType(): TypeSpec = TypeSpec.objectBuilder(objectName).run {
+    private fun buildQueryType(): TypeSpec = TypeSpec.objectBuilder(objectName).apply {
         // property
         addProperties(buildProperties())
 
@@ -30,24 +29,24 @@ class CollectionQueryWriter(
         addFunctions(buildWhereEqualToFuncs())
         addFunction(buildGetFunc())
         addFunction(buildDeserializeFunc())
-
-        build()
-    }
+    }.build()
 
     private fun buildProperties(): List<PropertySpec> =
         listOf(
-            PropertySpec.builder("query", Types.FirestoreQuery).run {
+            PropertySpec.builder("query", Types.FirestoreQuery).apply {
                 mutable()
                 addModifiers(KModifier.PRIVATE)
                 addModifiers(KModifier.LATEINIT)
-                build()
-            }
+            }.build()
             ,
-            PropertySpec.builder("reference", Types.CollectionReference).run {
-                initializer("%T.getInstance().collection(%S)", Types.FirestoreDatabase, model.collectionPath)
+            PropertySpec.builder("reference", Types.CollectionReference).apply {
+                initializer(
+                    "%T.getInstance().collection(%S)",
+                    Types.FirestoreDatabase,
+                    model.collectionPath
+                )
                 addModifiers(KModifier.PRIVATE)
-                build()
-            }
+            }.build()
         )
 
     private fun buildDeserializeFunc(): FunSpec {
@@ -64,7 +63,7 @@ class CollectionQueryWriter(
             }
             .joinToString(", ") { "${it.simpleName} = data.%M(%S) as %T" }
 
-        return FunSpec.builder("deserialize").run {
+        return FunSpec.builder("deserialize").apply {
             returns(model.type)
             addParameter(
                 "data",
@@ -74,8 +73,7 @@ class CollectionQueryWriter(
                 )
             )
             addStatement("return %T($parameters)", *parameterArgs.toTypedArray())
-            build()
-        }
+        }.build()
     }
 
     private fun buildWhereEqualToFuncs(): List<FunSpec> =
@@ -87,14 +85,14 @@ class CollectionQueryWriter(
                 } else {
                     field.fieldName
                 }
-                FunSpec.builder("${it.simpleName}EqualTo")
-                    .addParameter(key, it.javaToKotlinType())
-                    .addStatement("return apply { query = reference.whereEqualTo(%S, $key)}", key)
-                    .returns(ClassName(model.packageName, objectName))
-                    .build()
+                FunSpec.builder("${it.simpleName}EqualTo").apply {
+                    addParameter(key, it.javaToKotlinType())
+                    addStatement("return apply { query = reference.whereEqualTo(%S, $key)}", key)
+                    returns(ClassName(model.packageName, objectName))
+                }.build()
             }
 
-    private fun buildGetFunc(): FunSpec = FunSpec.builder("get").run {
+    private fun buildGetFunc(): FunSpec = FunSpec.builder("get").apply {
         addParameter(
             "onSuccessListener",
             Types.OnSuccessListener
@@ -108,8 +106,7 @@ class CollectionQueryWriter(
         addStatement("onFailureListener?.let { addOnFailureListener(it) }")
         addStatement("onCanceledListener?.let { addOnCanceledListener(it) }")
         endControlFlow()
-        build()
-    }
+    }.build()
 
     companion object {
         private const val QUERY_CLASS_SUFFIX = "Query"

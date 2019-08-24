@@ -14,31 +14,27 @@ class CollectionCreatorWriter(
         FileSpec.builder(model.packageName, objectName).apply {
             indent(DEFAULT_INDENT)
             addType(buildCreatorType())
-            build().writeTo(model.context.outDir)
-        }
+        }.build().writeTo(model.context.outDir)
     }
 
-    fun buildCreatorType(): TypeSpec = TypeSpec.objectBuilder(objectName).run {
+    fun buildCreatorType(): TypeSpec = TypeSpec.objectBuilder(objectName).apply {
         // property
         addProperties(buildProperties())
 
         // function
         addFunction(buildCreateFunction())
-
-        build()
-    }
+    }.build()
 
     fun buildProperties(): List<PropertySpec> =
         listOf(
-            PropertySpec.builder("reference", Types.CollectionReference).run {
+            PropertySpec.builder("reference", Types.CollectionReference).apply {
                 initializer("%T.getInstance().collection(%S)", Types.FirestoreDatabase, model.collectionPath)
                 addModifiers(KModifier.PRIVATE)
-                build()
-            }
+            }.build()
         )
 
     fun buildCreateFunction(): FunSpec =
-        FunSpec.builder("create").run {
+        FunSpec.builder("create").apply {
             addParameter(model.className.toLowerCase(), model.type)
             addParameter(
                 "onSuccessListener",
@@ -51,8 +47,7 @@ class CollectionCreatorWriter(
             addStatement("onFailureListener?.let { addOnFailureListener(it) }")
             addStatement("onCanceledListener?.let { addOnCanceledListener(it) }")
             endControlFlow()
-            build()
-        }
+        }.build()
 
     companion object {
         private const val CREATOR_CLASS_SUFFIX = "Creator"
