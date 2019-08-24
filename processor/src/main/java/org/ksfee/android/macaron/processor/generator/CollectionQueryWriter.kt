@@ -33,10 +33,10 @@ class CollectionQueryWriter(
 
     private fun buildProperties(): List<PropertySpec> =
         listOf(
-            PropertySpec.builder("query", Types.FirestoreQuery).apply {
+            PropertySpec.builder("query", Types.FirestoreQuery.copy(nullable = true)).apply {
                 mutable()
                 addModifiers(KModifier.PRIVATE)
-                addModifiers(KModifier.LATEINIT)
+                initializer("null")
             }.build()
             ,
             PropertySpec.builder("reference", Types.CollectionReference).apply {
@@ -93,8 +93,14 @@ class CollectionQueryWriter(
                 }
                 FunSpec.builder("${it.simpleName}EqualTo").apply {
                     addParameter(key, it.javaToKotlinType())
-                    addStatement("return apply { query = reference.whereEqualTo(%S, $key)}", key)
                     returns(ClassName(model.packageName, objectName))
+                    beginControlFlow("return apply")
+                    beginControlFlow("if (query != null)")
+                    addStatement("query?.whereEqualTo(%S, $key)", key)
+                    nextControlFlow("else")
+                    addStatement("query = reference.whereEqualTo(%S, $key)", key)
+                    endControlFlow()
+                    endControlFlow()
                 }.build()
             }
 
@@ -107,11 +113,12 @@ class CollectionQueryWriter(
         )
         addParameter("onFailureListener", Types.OnFailureListener.copy(nullable = true))
         addParameter("onCanceledListener", Types.OnCanceledListener.copy(nullable = true))
-        beginControlFlow("query.get().apply {")
+        beginControlFlow("query?.get()?.apply {")
         addStatement("addOnSuccessListener { onSuccessListener?.onSuccess(it.map { deserialize(it.data) }) }")
         addStatement("onFailureListener?.let { addOnFailureListener(it) }")
         addStatement("onCanceledListener?.let { addOnCanceledListener(it) }")
         endControlFlow()
+        addStatement("?: throw %T(%S)", IllegalStateException::class, "Query doesn't set yet.")
     }.build()
 
     companion object {
