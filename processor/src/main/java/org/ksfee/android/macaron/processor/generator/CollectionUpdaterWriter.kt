@@ -2,9 +2,11 @@ package org.ksfee.android.macaron.processor.generator
 
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.asTypeName
 import org.ksfee.android.macaron.processor.generator.ext.javaToKotlinType
+import org.ksfee.android.macaron.processor.generator.ext.optionalBuilder
 import org.ksfee.android.macaron.processor.generator.model.CollectionModel
 import org.ksfee.android.macaron.processor.generator.util.Types
 import javax.lang.model.element.VariableElement
@@ -28,11 +30,25 @@ class CollectionUpdaterWriter(
             receiver(model.type)
             addParameter(field.simpleName.toString(), field.javaToKotlinType())
             addParameter(
-                "onSuccessListener",
-                Types.OnSuccessListener.parameterizedBy(Void::class.asTypeName()).copy(nullable = true)
+                ParameterSpec.optionalBuilder(
+                    "onSuccessListener",
+                    Types.OnSuccessListener
+                        .parameterizedBy(Void::class.asTypeName())
+                        .copy(nullable = true)
+                ).build()
             )
-            addParameter("onFailureListener", Types.OnFailureListener.copy(nullable = true))
-            addParameter("onCanceledListener", Types.OnCanceledListener.copy(nullable = true))
+            addParameter(
+                ParameterSpec.optionalBuilder(
+                    "onFailureListener",
+                    Types.OnFailureListener.copy(nullable = true)
+                ).build()
+            )
+            addParameter(
+                ParameterSpec.optionalBuilder(
+                    "onCanceledListener",
+                    Types.OnCanceledListener.copy(nullable = true)
+                ).build()
+            )
             addCode("""
                 documentReference?.update(%S, ${field.simpleName})?.apply {
                     addOnSuccessListener { onSuccessListener?.onSuccess(null) }

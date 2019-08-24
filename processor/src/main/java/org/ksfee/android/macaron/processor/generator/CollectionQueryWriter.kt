@@ -5,6 +5,7 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import org.ksfee.android.macaron.annotation.Field
 import org.ksfee.android.macaron.processor.generator.ext.isNullable
 import org.ksfee.android.macaron.processor.generator.ext.javaToKotlinType
+import org.ksfee.android.macaron.processor.generator.ext.optionalBuilder
 import org.ksfee.android.macaron.processor.generator.model.CollectionModel
 import org.ksfee.android.macaron.processor.generator.util.Types
 
@@ -106,13 +107,25 @@ class CollectionQueryWriter(
 
     private fun buildGetFunc(): FunSpec = FunSpec.builder("get").apply {
         addParameter(
-            "onSuccessListener",
-            Types.OnSuccessListener
-                .parameterizedBy(List::class.asTypeName().parameterizedBy(model.type))
-                .copy(nullable = true)
+            ParameterSpec.optionalBuilder(
+                "onSuccessListener",
+                Types.OnSuccessListener
+                    .parameterizedBy(List::class.asTypeName().parameterizedBy(model.type))
+                    .copy(nullable = true)
+            ).build()
         )
-        addParameter("onFailureListener", Types.OnFailureListener.copy(nullable = true))
-        addParameter("onCanceledListener", Types.OnCanceledListener.copy(nullable = true))
+        addParameter(
+            ParameterSpec.optionalBuilder(
+                "onFailureListener",
+                Types.OnFailureListener.copy(nullable = true)
+            ).build()
+        )
+        addParameter(
+            ParameterSpec.optionalBuilder(
+                "onCanceledListener",
+                Types.OnCanceledListener.copy(nullable = true)
+            ).build()
+        )
         addCode("""
             query?.get()?.apply {
                 addOnSuccessListener { onSuccessListener?.onSuccess(it.map { deserialize(it.data) }) }

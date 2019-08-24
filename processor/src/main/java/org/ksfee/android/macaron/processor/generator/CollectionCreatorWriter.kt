@@ -2,6 +2,7 @@ package org.ksfee.android.macaron.processor.generator
 
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import org.ksfee.android.macaron.processor.generator.ext.optionalBuilder
 import org.ksfee.android.macaron.processor.generator.model.CollectionModel
 import org.ksfee.android.macaron.processor.generator.util.Types
 
@@ -37,11 +38,23 @@ class CollectionCreatorWriter(
         FunSpec.builder("create").apply {
             addParameter(model.className.toLowerCase(), model.type)
             addParameter(
-                "onSuccessListener",
-                Types.OnSuccessListener.parameterizedBy(model.type).copy(nullable = true)
+                ParameterSpec.optionalBuilder(
+                    "onSuccessListener",
+                    Types.OnSuccessListener.parameterizedBy(model.type).copy(nullable = true)
+                ).build()
             )
-            addParameter("onFailureListener", Types.OnFailureListener.copy(nullable = true))
-            addParameter("onCanceledListener", Types.OnCanceledListener.copy(nullable = true))
+            addParameter(
+                ParameterSpec.optionalBuilder(
+                    "onFailureListener",
+                    Types.OnFailureListener.copy(nullable = true)
+                ).build()
+            )
+            addParameter(
+                ParameterSpec.optionalBuilder(
+                    "onCanceledListener",
+                    Types.OnCanceledListener.copy(nullable = true)
+                ).build()
+            )
             beginControlFlow("reference.add(user).apply")
             addStatement("addOnSuccessListener { onSuccessListener?.onSuccess(${model.propertyName}.apply{ documentReference = it }) }")
             addStatement("onFailureListener?.let { addOnFailureListener(it) }")
