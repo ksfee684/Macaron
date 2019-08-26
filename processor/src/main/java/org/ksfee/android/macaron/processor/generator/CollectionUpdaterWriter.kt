@@ -5,7 +5,7 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.asTypeName
-import org.ksfee.android.macaron.processor.generator.ext.javaToKotlinType
+import org.ksfee.android.macaron.processor.generator.ext.asKotlinType
 import org.ksfee.android.macaron.processor.generator.ext.optionalBuilder
 import org.ksfee.android.macaron.processor.generator.model.CollectionModel
 import org.ksfee.android.macaron.processor.generator.util.Types
@@ -28,7 +28,7 @@ class CollectionUpdaterWriter(
     fun buildUpdateFunc(field: VariableElement): FunSpec =
         FunSpec.builder("update${field.simpleName.toString().capitalize()}").apply {
             receiver(model.type)
-            addParameter(field.simpleName.toString(), field.javaToKotlinType())
+            addParameter(field.simpleName.toString(), field.asKotlinType())
             addParameter(
                 ParameterSpec.optionalBuilder(
                     "onSuccessListener",

@@ -11,17 +11,13 @@ import javax.lang.model.element.VariableElement
 import kotlin.reflect.jvm.internal.impl.builtins.jvm.JavaToKotlinClassMap
 import kotlin.reflect.jvm.internal.impl.name.FqName
 
-fun Element.javaToKotlinType(recursive: Boolean = true): TypeName =
-    asType().asTypeName().javaToKotlinType(recursive)
+fun Element.asKotlinType(): TypeName =
+    asType().asTypeName().asKotlinType()
 
-fun TypeName.javaToKotlinType(recursive: Boolean): TypeName = if (this is ParameterizedTypeName) {
-    if (recursive) {
-        (rawType.javaToKotlinType(recursive) as ClassName).parameterizedBy(
-            *typeArguments.map { it.javaToKotlinType(recursive) }.toTypedArray()
-        )
-    } else {
-        rawType.javaToKotlinType(recursive) as ClassName
-    }
+fun TypeName.asKotlinType(): TypeName = if (this is ParameterizedTypeName) {
+    (rawType.asKotlinType() as ClassName).parameterizedBy(
+        *typeArguments.map { it.asKotlinType() }.toTypedArray()
+    )
 } else {
     val className = JavaToKotlinClassMap.INSTANCE
         .mapJavaToKotlin(FqName(toString()))?.asSingleFqName()?.asString()

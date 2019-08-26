@@ -3,8 +3,8 @@ package org.ksfee.android.macaron.processor.generator
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import org.ksfee.android.macaron.annotation.Field
+import org.ksfee.android.macaron.processor.generator.ext.asKotlinType
 import org.ksfee.android.macaron.processor.generator.ext.isNullable
-import org.ksfee.android.macaron.processor.generator.ext.javaToKotlinType
 import org.ksfee.android.macaron.processor.generator.ext.optionalBuilder
 import org.ksfee.android.macaron.processor.generator.model.CollectionModel
 import org.ksfee.android.macaron.processor.generator.util.Types
@@ -64,7 +64,7 @@ class CollectionQueryWriter(
                         MemberName(Types.TypedValue.packageName, Types.TypedValue.simpleName)
                     }
                     parameterArgs.add(retrieveMethod)
-                    parameterArgs.add(it.javaToKotlinType())
+                    parameterArgs.add(it.asKotlinType())
                     parameterArgs.add(it.simpleName)
                 }
             }
@@ -93,7 +93,7 @@ class CollectionQueryWriter(
                     field.fieldName
                 }
                 FunSpec.builder("${it.simpleName}EqualTo").apply {
-                    addParameter(key, it.javaToKotlinType())
+                    addParameter(key, it.asKotlinType())
                     returns(ClassName(model.packageName, objectName))
                     beginControlFlow("return apply")
                     beginControlFlow("if (query != null)")

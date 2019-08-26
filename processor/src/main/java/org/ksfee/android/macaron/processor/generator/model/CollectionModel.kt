@@ -5,7 +5,7 @@ import com.squareup.kotlinpoet.asClassName
 import org.ksfee.android.macaron.annotation.Collection
 import org.ksfee.android.macaron.annotation.Field
 import org.ksfee.android.macaron.processor.generator.GeneratorContext
-import org.ksfee.android.macaron.processor.generator.ext.javaToKotlinType
+import org.ksfee.android.macaron.processor.generator.ext.asKotlinType
 import javax.lang.model.element.VariableElement
 
 class CollectionModel(
@@ -17,7 +17,7 @@ class CollectionModel(
 
     val propertyName: String = className.toLowerCase()
 
-    val type: TypeName = context.element.javaToKotlinType()
+    val type: TypeName = context.element.asKotlinType()
 
     val collectionPath = context.element.getAnnotation(Collection::class.java).collectionPath
 
