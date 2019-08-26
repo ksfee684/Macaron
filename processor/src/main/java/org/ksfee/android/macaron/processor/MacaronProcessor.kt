@@ -66,6 +66,7 @@ class MacaronProcessingStep(
                 buildQuerie(it)
                 buildUpdater(it)
                 buildDeleter(it)
+                buildObjectMapper(it)
             }
 
         return mutableSetOf()
@@ -85,5 +86,9 @@ class MacaronProcessingStep(
 
     private fun buildDeleter(collectionModel: CollectionModel) {
         CollectionDeleterWriter(collectionModel).write()
+    }
+
+    private fun buildObjectMapper(collectionModel: CollectionModel) {
+        CollectionMapperWriter(collectionModel).write()
     }
 }

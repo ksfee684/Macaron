@@ -55,7 +55,7 @@ class CollectionCreatorWriter(
                     Types.OnCanceledListener.copy(nullable = true)
                 ).build()
             )
-            beginControlFlow("reference.add(user).apply")
+            beginControlFlow("reference.add(user.toData()).apply")
             addStatement("addOnSuccessListener { onSuccessListener?.onSuccess(${model.propertyName}.apply{ documentReference = it }) }")
             addStatement("onFailureListener?.let { addOnFailureListener(it) }")
             addStatement("onCanceledListener?.let { addOnCanceledListener(it) }")
