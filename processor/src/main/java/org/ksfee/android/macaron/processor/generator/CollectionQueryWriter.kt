@@ -2,8 +2,8 @@ package org.ksfee.android.macaron.processor.generator
 
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import org.ksfee.android.macaron.annotation.Field
 import org.ksfee.android.macaron.processor.generator.ext.asKotlinType
+import org.ksfee.android.macaron.processor.generator.ext.fieldName
 import org.ksfee.android.macaron.processor.generator.ext.isNullable
 import org.ksfee.android.macaron.processor.generator.ext.optionalBuilder
 import org.ksfee.android.macaron.processor.generator.model.CollectionModel
@@ -54,8 +54,8 @@ class CollectionQueryWriter(
         val parameterArgs = mutableListOf<Any>(model.type)
         val parameters = model.fields
             .apply {
-                forEach {
-                    val retrieveMethod = if (it.isNullable()) {
+                forEach { field ->
+                    val retrieveMethod = if (field.isNullable()) {
                         MemberName(
                             Types.TypedNullableValue.packageName,
                             Types.TypedNullableValue.simpleName
@@ -64,11 +64,11 @@ class CollectionQueryWriter(
                         MemberName(Types.TypedValue.packageName, Types.TypedValue.simpleName)
                     }
                     parameterArgs.add(retrieveMethod)
-                    parameterArgs.add(it.asKotlinType())
-                    parameterArgs.add(it.simpleName)
+                    parameterArgs.add(field.asKotlinType())
+                    parameterArgs.add(field.simpleName)
                 }
             }
-            .joinToString(", ") { "${it.simpleName} = data.%M<%T>(%S)" }
+            .joinToString(", ") { "${it.fieldName()} = data.%M<%T>(%S)" }
 
         return FunSpec.builder("deserialize").apply {
             returns(model.type)
@@ -85,21 +85,15 @@ class CollectionQueryWriter(
 
     private fun buildWhereEqualToFuncs(): List<FunSpec> =
         model.fields
-            .map {
-                val field = it.getAnnotation(Field::class.java)
-                val key = if (field.fieldName.isEmpty()) {
-                    it.simpleName.toString()
-                } else {
-                    field.fieldName
-                }
-                FunSpec.builder("${it.simpleName}EqualTo").apply {
-                    addParameter(key, it.asKotlinType())
+            .map {field ->
+                FunSpec.builder("${field.simpleName}EqualTo").apply {
+                    addParameter(field.simpleName.toString(), field.asKotlinType())
                     returns(ClassName(model.packageName, objectName))
                     beginControlFlow("return apply")
                     beginControlFlow("if (query != null)")
-                    addStatement("query?.whereEqualTo(%S, $key)", key)
+                    addStatement("query?.whereEqualTo(%S, ${field.simpleName})", field.fieldName())
                     nextControlFlow("else")
-                    addStatement("query = reference.whereEqualTo(%S, $key)", key)
+                    addStatement("query = reference.whereEqualTo(%S, ${field.simpleName})", field.fieldName())
                     endControlFlow()
                     endControlFlow()
                 }.build()

@@ -6,6 +6,7 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.asTypeName
 import org.ksfee.android.macaron.processor.generator.ext.asKotlinType
+import org.ksfee.android.macaron.processor.generator.ext.fieldName
 import org.ksfee.android.macaron.processor.generator.model.CollectionModel
 
 class CollectionMapperWriter(
@@ -28,7 +29,7 @@ class CollectionMapperWriter(
         receiver(model.type)
         returns(dataType)
         val parameterMap =
-            model.fields.joinToString(", ") { "\"${it.simpleName}\" to ${it.simpleName}" }
+            model.fields.joinToString(", ") { "\"${it.fieldName()}\" to ${it.simpleName}" }
         addStatement("return mapOf($parameterMap)", dataType)
     }.build()
 

@@ -6,6 +6,7 @@ import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.asTypeName
 import org.ksfee.android.macaron.processor.generator.ext.asKotlinType
+import org.ksfee.android.macaron.processor.generator.ext.fieldName
 import org.ksfee.android.macaron.processor.generator.ext.optionalBuilder
 import org.ksfee.android.macaron.processor.generator.model.CollectionModel
 import org.ksfee.android.macaron.processor.generator.util.Types
@@ -56,7 +57,7 @@ class CollectionUpdaterWriter(
                     onCanceledListener?.let { addOnCanceledListener(it) }
                 } ?: throw %T(%S)
             """.trimIndent(),
-                field.simpleName.toString(),
+                field.fieldName(),
                 IllegalStateException::class,
                 "${model.className} doesn't have a document reference."
             )

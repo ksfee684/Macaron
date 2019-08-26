@@ -6,6 +6,7 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import org.jetbrains.annotations.Nullable
+import org.ksfee.android.macaron.annotation.Field
 import javax.lang.model.element.Element
 import javax.lang.model.element.VariableElement
 import kotlin.reflect.jvm.internal.impl.builtins.jvm.JavaToKotlinClassMap
@@ -31,5 +32,21 @@ fun VariableElement.isNullable(): Boolean {
         true
     } catch (e: IllegalStateException) {
         false
+    }
+}
+
+fun VariableElement.fieldName(): String {
+    val fieldAnnotation = getAnnotation(Field::class.java)
+
+    try {
+        checkNotNull(fieldAnnotation)
+    } catch (e: IllegalStateException) {
+        return simpleName.toString()
+    }
+
+    return if (fieldAnnotation.fieldName.isEmpty()) {
+        simpleName.toString()
+    } else {
+        fieldAnnotation.fieldName
     }
 }
