@@ -62,6 +62,10 @@ class CollectionCreatorWriter(
             endControlFlow()
         }.build()
 
+    fun buildCreateWithIdFunction(): FunSpec = FunSpec.builder("createWithId").apply {
+
+    }.build()
+
     companion object {
         private const val CREATOR_CLASS_SUFFIX = "Creator"
     }

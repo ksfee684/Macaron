@@ -34,12 +34,6 @@ class CollectionQueryWriter(
 
     private fun buildProperties(): List<PropertySpec> =
         listOf(
-            PropertySpec.builder("query", Types.FirestoreQuery.copy(nullable = true)).apply {
-                mutable()
-                addModifiers(KModifier.PRIVATE)
-                initializer("null")
-            }.build()
-            ,
             PropertySpec.builder("reference", Types.CollectionReference).apply {
                 initializer(
                     "%T.getInstance().collection(%S)",
@@ -47,6 +41,11 @@ class CollectionQueryWriter(
                     model.collectionPath
                 )
                 addModifiers(KModifier.PRIVATE)
+            }.build(),
+            PropertySpec.builder("query", Types.FirestoreQuery).apply {
+                mutable()
+                addModifiers(KModifier.PRIVATE)
+                initializer("reference")
             }.build()
         )
 
@@ -65,10 +64,10 @@ class CollectionQueryWriter(
                     }
                     parameterArgs.add(retrieveMethod)
                     parameterArgs.add(field.asKotlinType())
-                    parameterArgs.add(field.simpleName)
+                    parameterArgs.add(field.fieldName())
                 }
             }
-            .joinToString(", ") { "${it.fieldName()} = data.%M<%T>(%S)" }
+            .joinToString(", ") { "${it.simpleName} = data.%M<%T>(%S)" }
 
         return FunSpec.builder("deserialize").apply {
             returns(model.type)
@@ -89,13 +88,10 @@ class CollectionQueryWriter(
                 FunSpec.builder("${field.simpleName}EqualTo").apply {
                     addParameter(field.simpleName.toString(), field.asKotlinType())
                     returns(ClassName(model.packageName, objectName))
-                    beginControlFlow("return apply")
-                    beginControlFlow("if (query != null)")
-                    addStatement("query?.whereEqualTo(%S, ${field.simpleName})", field.fieldName())
-                    nextControlFlow("else")
-                    addStatement("query = reference.whereEqualTo(%S, ${field.simpleName})", field.fieldName())
-                    endControlFlow()
-                    endControlFlow()
+                    addStatement(
+                        "return apply { query.whereEqualTo(%S, ${field.simpleName}) }",
+                        field.fieldName()
+                    )
                 }.build()
             }
 
@@ -121,15 +117,12 @@ class CollectionQueryWriter(
             ).build()
         )
         addCode("""
-            query?.get()?.apply {
+            query.get().apply {
                 addOnSuccessListener { onSuccessListener?.onSuccess(it.map { deserialize(it.data) }) }
                 onFailureListener?.let { addOnFailureListener(it) }
                 onCanceledListener?.let { addOnCanceledListener(it) }
-            } ?: throw %T(%S)
-        """.trimIndent(),
-            IllegalStateException::class,
-            "Query doesn't set yet."
-        )
+            }
+        """.trimIndent())
         addStatement("")
     }.build()
 

@@ -30,9 +30,12 @@ dependencies {
     implementation Jetpack.AppCompat
     implementation Jetpack.CoreKtx
     implementation Jetpack.ConstraintLayout
+    implementation Jetpack.Material
 
     testImplementation TestLib.JUnit
 
     androidTestImplementation Jetpack.TestRunner
     androidTestImplementation Jetpack.EspressoCore
 }
+
+apply plugin: 'com.google.gms.google-services'

@@ -44,9 +44,9 @@ fun VariableElement.fieldName(): String {
         return simpleName.toString()
     }
 
-    return if (fieldAnnotation.fieldName.isEmpty()) {
+    return if (fieldAnnotation.name.isEmpty()) {
         simpleName.toString()
     } else {
-        fieldAnnotation.fieldName
+        fieldAnnotation.name
     }
 }

@@ -12,7 +12,7 @@ import org.ksfee.android.macaron.processor.generator.model.CollectionModel
 class CollectionMapperWriter(
     private val model: CollectionModel
 ) : MacaronWriter() {
-
+            
     private val objectName: String = model.className + MAPPER_CLASS_SUFFIX
 
     override fun write() {

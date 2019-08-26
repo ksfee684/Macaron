@@ -11,6 +11,7 @@ object Version {
     const val KotlinPoet = "1.3.0"
     const val MockitoKotlin = "2.1.0"
     const val JetbrainsAnnotation = "16.0.2"
+    const val Material = "1.0.0"
 }
 
 object Kotlin {
@@ -25,6 +26,7 @@ object Jetpack {
     const val ConstraintLayout = "androidx.constraintlayout:constraintlayout:${Version.ConstraintLayout}"
     const val TestRunner = "androidx.test:runner:${Version.AndroidXTest}"
     const val EspressoCore = "androidx.test.espresso:espresso-core:${Version.Espresso}"
+    const val Material = "com.google.android.material:material:${Version.Material}"
 }
 
 object Firebase {
