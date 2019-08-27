@@ -29,6 +29,7 @@ class CollectionQueryWriter(
 
         // function
         addFunctions(buildWhereEqualToFuncs())
+        addFunctions(buildOrderByFuncs())
         addFunction(buildGetFunc(typeName))
         addFunction(buildDeserializeFunc())
         addFunctions(buildListenerFuncs(typeName))
@@ -91,17 +92,28 @@ class CollectionQueryWriter(
     }
 
     private fun buildWhereEqualToFuncs(): List<FunSpec> =
-        model.fields
-            .map {field ->
-                FunSpec.builder("${field.simpleName}EqualTo").apply {
-                    addParameter(field.simpleName.toString(), field.asKotlinType())
-                    returns(ClassName(model.packageName, objectName))
-                    addStatement(
-                        "return apply { query.whereEqualTo(%S, ${field.simpleName}) }",
-                        field.fieldName()
-                    )
-                }.build()
-            }
+        model.fields.map {field ->
+            FunSpec.builder("${field.simpleName}EqualTo").apply {
+                addParameter(field.simpleName.toString(), field.asKotlinType())
+                returns(ClassName(model.packageName, objectName))
+                addStatement(
+                    "return apply { query.whereEqualTo(%S, ${field.simpleName}) }",
+                    field.fieldName()
+                )
+            }.build()
+        }
+
+    private fun buildOrderByFuncs(): List<FunSpec> =
+        model.fields.map {field ->
+            FunSpec.builder("orderBy${field.simpleName.toString().capitalize()}").apply {
+                addParameter(
+                    ParameterSpec.builder("direction", Types.Direction).apply {
+                        defaultValue("Query.Direction.ASCENDING")
+                    }.build()
+                )
+                addStatement("return apply { query.orderBy(%S, direction) }", field.fieldName())
+            }.build()
+        }
 
     private fun buildGetFunc(typeName: TypeName): FunSpec = FunSpec.builder("get").apply {
         returns(typeName)

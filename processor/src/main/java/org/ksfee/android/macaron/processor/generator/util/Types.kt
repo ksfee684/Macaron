@@ -16,6 +16,8 @@ object Types {
         ClassName("com.google.firebase.firestore", "DocumentReference")
     val Task =
         ClassName("com.google.android.gms.tasks", "Task")
+    val Direction =
+        ClassName("com.google.firebase.firestore", "Query.Direction")
 
     object Listener {
         val OnSuccessListener =
