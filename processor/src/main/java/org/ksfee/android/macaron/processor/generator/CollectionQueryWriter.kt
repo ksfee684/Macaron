@@ -30,6 +30,7 @@ class CollectionQueryWriter(
         // function
         addFunctions(buildWhereEqualToFuncs())
         addFunctions(buildOrderByFuncs())
+        addFunction(buildLimitFunc())
         addFunction(buildGetFunc(typeName))
         addFunction(buildDeserializeFunc())
         addFunctions(buildListenerFuncs(typeName))
@@ -114,6 +115,12 @@ class CollectionQueryWriter(
                 addStatement("return apply { query.orderBy(%S, direction) }", field.fieldName())
             }.build()
         }
+
+    private fun buildLimitFunc(): FunSpec =
+        FunSpec.builder("limit").apply {
+            addParameter("limit", Long::class)
+            addStatement("return apply { query.limit(limit) }")
+        }.build()
 
     private fun buildGetFunc(typeName: TypeName): FunSpec = FunSpec.builder("get").apply {
         returns(typeName)
