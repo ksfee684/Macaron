@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.FirebaseApp
@@ -15,6 +16,7 @@ import org.ksfee.android.macaron.R
 import org.ksfee.android.macaron.sample.model.User
 import org.ksfee.android.macaron.sample.model.UserCreator
 import org.ksfee.android.macaron.sample.model.UserQuery
+import org.ksfee.android.macaron.sample.model.delete
 import java.util.*
 
 class UserListActivity : AppCompatActivity() {
@@ -25,26 +27,32 @@ class UserListActivity : AppCompatActivity() {
         FirebaseApp.initializeApp(this)
 
         fab.setOnClickListener {
-            UserCreator.create(
-                User(
-                    name = "Mike",
-                    age = 25,
-                    description = null,
-                    createdAt = Date().time
-                ),
-                OnSuccessListener {
-                    fetchUsers()
-                }
+            UserCreator().create(
+                User(name = "Mike", age = 25, description = null, createdAt = Date().time)
             )
+                .addOnSuccessListener(OnSuccessListener {
+                    fetchUsers()
+                })
         }
         fetchUsers()
     }
 
     private fun fetchUsers() {
-        UserQuery.get(OnSuccessListener { list ->
-            user_list.adapter =
-                UserAdapter(this@UserListActivity, list)
-        })
+        UserQuery()
+            .get()
+            .addOnSuccessListener(OnSuccessListener {
+                user_list.adapter = UserAdapter(this@UserListActivity, it)
+                user_list.setOnItemLongClickListener { _, _, position, _ ->
+                    (user_list.adapter.getItem(position) as User)
+                        .delete()
+                        .addOnSuccessListener {
+                            Toast.makeText(this@UserListActivity, "Deleted!", Toast.LENGTH_SHORT).show()
+                            fetchUsers()
+                        }
+                    true
+                }
+                Toast.makeText(this@UserListActivity, "Fetched!", Toast.LENGTH_SHORT).show()
+            })
     }
 }
 
@@ -61,7 +69,7 @@ class UserAdapter(
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         return LayoutInflater.from(context).inflate(R.layout.item_user, parent, false).apply {
-            user_name.text = getItem(position).name
+            user_name.text = getItem(position).documentReference?.path
         }
     }
 }

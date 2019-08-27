@@ -22,14 +22,16 @@ class CollectionQueryWriter(
         }.build().writeTo(model.context.outDir)
     }
 
-    private fun buildQueryType(): TypeSpec = TypeSpec.objectBuilder(objectName).apply {
+    private fun buildQueryType(): TypeSpec = TypeSpec.classBuilder(objectName).apply {
+        val typeName = ClassName(model.packageName, objectName)
         // property
         addProperties(buildProperties())
 
         // function
         addFunctions(buildWhereEqualToFuncs())
-        addFunction(buildGetFunc())
+        addFunction(buildGetFunc(typeName))
         addFunction(buildDeserializeFunc())
+        addFunctions(buildListenerFuncs(typeName))
     }.build()
 
     private fun buildProperties(): List<PropertySpec> =
@@ -46,6 +48,11 @@ class CollectionQueryWriter(
                 mutable()
                 addModifiers(KModifier.PRIVATE)
                 initializer("reference")
+            }.build(),
+            PropertySpec.builder("task", Types.Task.parameterizedBy(Types.QuerySnapShot).copy(nullable = true)).apply {
+                mutable()
+                initializer("null")
+                addModifiers(KModifier.PRIVATE)
             }.build()
         )
 
@@ -71,6 +78,7 @@ class CollectionQueryWriter(
 
         return FunSpec.builder("deserialize").apply {
             returns(model.type)
+            addParameter("reference", Types.DocumentReference)
             addParameter(
                 "data",
                 Map::class.asClassName().parameterizedBy(
@@ -78,7 +86,7 @@ class CollectionQueryWriter(
                     Any::class.asTypeName()
                 )
             )
-            addStatement("return %T($parameters)", *parameterArgs.toTypedArray())
+            addStatement("return %T($parameters).apply { documentReference = reference }", *parameterArgs.toTypedArray())
         }.build()
     }
 
@@ -95,36 +103,28 @@ class CollectionQueryWriter(
                 }.build()
             }
 
-    private fun buildGetFunc(): FunSpec = FunSpec.builder("get").apply {
-        addParameter(
-            ParameterSpec.optionalBuilder(
-                "onSuccessListener",
-                Types.OnSuccessListener
-                    .parameterizedBy(List::class.asTypeName().parameterizedBy(model.type))
-                    .copy(nullable = true)
-            ).build()
-        )
-        addParameter(
-            ParameterSpec.optionalBuilder(
-                "onFailureListener",
-                Types.OnFailureListener.copy(nullable = true)
-            ).build()
-        )
-        addParameter(
-            ParameterSpec.optionalBuilder(
-                "onCanceledListener",
-                Types.OnCanceledListener.copy(nullable = true)
-            ).build()
-        )
-        addCode("""
-            query.get().apply {
-                addOnSuccessListener { onSuccessListener?.onSuccess(it.map { deserialize(it.data) }) }
-                onFailureListener?.let { addOnFailureListener(it) }
-                onCanceledListener?.let { addOnCanceledListener(it) }
-            }
-        """.trimIndent())
-        addStatement("")
+    private fun buildGetFunc(typeName: TypeName): FunSpec = FunSpec.builder("get").apply {
+        returns(typeName)
+        addStatement("return apply { task = query.get() }")
     }.build()
+
+    private fun buildListenerFuncs(typeName: TypeName): List<FunSpec> = listOf(
+        FunSpec.builder("addOnSuccessListener").apply {
+            returns(typeName)
+            addParameter("onSuccessListener", Types.Listener.OnSuccessListener.parameterizedBy(List::class.asTypeName().parameterizedBy(model.type)))
+            addStatement("return apply { task?.addOnSuccessListener { onSuccessListener.onSuccess(it.map { deserialize(it.reference, it.data) }) } }")
+        }.build(),
+        FunSpec.builder("addOnCanceledListener").apply {
+            returns(typeName)
+            addParameter("onCanceledListener", Types.Listener.OnCanceledListener)
+            addStatement("return apply { task?.addOnCanceledListener(onCanceledListener) }")
+        }.build(),
+        FunSpec.builder("addOnFailureListener").apply {
+            returns(typeName)
+            addParameter("onFailureListener", Types.Listener.OnFailureListener)
+            addStatement("return apply { task?.addOnFailureListener(onFailureListener) }")
+        }.build()
+    )
 
     companion object {
         private const val QUERY_CLASS_SUFFIX = "Query"

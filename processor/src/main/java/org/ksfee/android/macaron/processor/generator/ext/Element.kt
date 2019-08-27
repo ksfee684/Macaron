@@ -35,6 +35,9 @@ fun VariableElement.isNullable(): Boolean {
     }
 }
 
+fun VariableElement.asKotlinType(): TypeName =
+    (this as Element).asKotlinType().copy(nullable = isNullable())
+
 fun VariableElement.fieldName(): String {
     val fieldAnnotation = getAnnotation(Field::class.java)
 

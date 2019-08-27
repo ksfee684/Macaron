@@ -2,7 +2,6 @@ package org.ksfee.android.macaron.processor.generator
 
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import org.ksfee.android.macaron.processor.generator.ext.optionalBuilder
 import org.ksfee.android.macaron.processor.generator.model.CollectionModel
 import org.ksfee.android.macaron.processor.generator.util.Types
 
@@ -18,53 +17,38 @@ class CollectionCreatorWriter(
         }.build().writeTo(model.context.outDir)
     }
 
-    fun buildCreatorType(): TypeSpec = TypeSpec.objectBuilder(objectName).apply {
+    fun buildCreatorType(): TypeSpec = TypeSpec.classBuilder(objectName).apply {
+        val typeName = ClassName(model.packageName, objectName)
+
         // property
         addProperties(buildProperties())
 
         // function
         addFunction(buildCreateFunction())
+        addFunction(buildCreateWithPathFunction(typeName))
     }.build()
 
-    fun buildProperties(): List<PropertySpec> =
-        listOf(
-            PropertySpec.builder("reference", Types.CollectionReference).apply {
-                initializer("%T.getInstance().collection(%S)", Types.FirestoreDatabase, model.collectionPath)
-                addModifiers(KModifier.PRIVATE)
-            }.build()
-        )
+    fun buildProperties(): List<PropertySpec> = listOf(
+        PropertySpec.builder("reference", Types.CollectionReference).apply {
+            initializer("%T.getInstance().collection(%S)", Types.FirestoreDatabase, model.collectionPath)
+            addModifiers(KModifier.PRIVATE)
+        }.build()
+    )
 
     fun buildCreateFunction(): FunSpec =
         FunSpec.builder("create").apply {
-            addParameter(model.className.toLowerCase(), model.type)
-            addParameter(
-                ParameterSpec.optionalBuilder(
-                    "onSuccessListener",
-                    Types.OnSuccessListener.parameterizedBy(model.type).copy(nullable = true)
-                ).build()
-            )
-            addParameter(
-                ParameterSpec.optionalBuilder(
-                    "onFailureListener",
-                    Types.OnFailureListener.copy(nullable = true)
-                ).build()
-            )
-            addParameter(
-                ParameterSpec.optionalBuilder(
-                    "onCanceledListener",
-                    Types.OnCanceledListener.copy(nullable = true)
-                ).build()
-            )
-            beginControlFlow("reference.add(user.toData()).apply")
-            addStatement("addOnSuccessListener { onSuccessListener?.onSuccess(${model.propertyName}.apply{ documentReference = it }) }")
-            addStatement("onFailureListener?.let { addOnFailureListener(it) }")
-            addStatement("onCanceledListener?.let { addOnCanceledListener(it) }")
-            endControlFlow()
+            returns(Types.Task.parameterizedBy(Void::class.asTypeName()))
+            addParameter(model.propertyName, model.type)
+            addStatement("return reference.document().set(${model.propertyName}.toData())")
         }.build()
 
-    fun buildCreateWithIdFunction(): FunSpec = FunSpec.builder("createWithId").apply {
-
-    }.build()
+    fun buildCreateWithPathFunction(typeName: TypeName): FunSpec =
+        FunSpec.builder("createWithId").apply {
+            returns(Types.Task.parameterizedBy(Void::class.asTypeName()))
+            addParameter(model.propertyName, model.type)
+            addParameter("documentPath", String::class)
+            addStatement("return reference.document(documentPath).set(${model.propertyName}.toData())")
+        }.build()
 
     companion object {
         private const val CREATOR_CLASS_SUFFIX = "Creator"

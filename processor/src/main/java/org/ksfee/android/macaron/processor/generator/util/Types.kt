@@ -10,12 +10,23 @@ object Types {
         ClassName("com.google.firebase.firestore", "FirebaseFirestore")
     val CollectionReference =
         ClassName("com.google.firebase.firestore", "CollectionReference")
-    val OnSuccessListener =
-        ClassName("com.google.android.gms.tasks", "OnSuccessListener")
-    val OnFailureListener =
-        ClassName("com.google.android.gms.tasks", "OnFailureListener")
-    val OnCanceledListener: ClassName =
-        ClassName("com.google.android.gms.tasks", "OnCanceledListener")
+    val QuerySnapShot =
+        ClassName("com.google.firebase.firestore", "QuerySnapshot")
+    val DocumentReference =
+        ClassName("com.google.firebase.firestore", "DocumentReference")
+    val Task =
+        ClassName("com.google.android.gms.tasks", "Task")
+
+    object Listener {
+        val OnSuccessListener =
+            ClassName("com.google.android.gms.tasks", "OnSuccessListener")
+        val OnFailureListener =
+            ClassName("com.google.android.gms.tasks", "OnFailureListener")
+        val OnCanceledListener: ClassName =
+            ClassName("com.google.android.gms.tasks", "OnCanceledListener")
+        val OnCompleteListener =
+            ClassName("com.google.android.gms.tasks", "OnCompleteListener")
+    }
 
     // library module
     val TypedValue =
