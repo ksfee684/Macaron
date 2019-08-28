@@ -10,18 +10,19 @@ import javax.lang.model.element.VariableElement
 class CollectionUpdaterWriter(
     private val model: CollectionModel
 ) : MacaronWriter() {
-    private val objectName = model.className + UPDATER_CLASS_SUFFIX
+
+    private val className = model.className + UPDATER_CLASS_SUFFIX
+
+    private val type = ClassName(model.packageName, className)
 
     override fun write() {
-        FileSpec.builder(model.packageName, objectName).apply {
+        FileSpec.builder(model.packageName, className).apply {
             indent(DEFAULT_INDENT)
             addType(buildUpdaterType())
         }.build().writeTo(model.context.outDir)
     }
 
-    fun buildUpdaterType(): TypeSpec = TypeSpec.classBuilder(objectName).apply {
-        val typeName = ClassName(model.packageName, objectName)
-
+    fun buildUpdaterType(): TypeSpec = TypeSpec.classBuilder(className).apply {
         // constructor
         primaryConstructor(buildConstructor())
 
@@ -29,10 +30,10 @@ class CollectionUpdaterWriter(
         addProperties(buildProperties())
 
         // function
-        addFunctions(buildUpdateFieldFuncs(typeName))
-        addFunction(buildUpdateObjectFunc(typeName))
-        addFunction(buildUpdate(typeName))
-        addFunctions(buildListenerFuncs(typeName))
+        addFunctions(buildUpdateFieldFuncs())
+        addFunction(buildUpdateObjectFunc())
+        addFunction(buildUpdate())
+        addFunctions(buildListenerFuncs())
     }.build()
 
     fun buildConstructor(): FunSpec = FunSpec.constructorBuilder().apply {
@@ -55,17 +56,17 @@ class CollectionUpdaterWriter(
         }.build()
     )
 
-    fun buildUpdateFieldFuncs(typeName: TypeName): List<FunSpec> = model.fields.map { buildUpdateFieldFunc(typeName, it) }
+    fun buildUpdateFieldFuncs(): List<FunSpec> = model.fields.map { buildUpdateFieldFunc(it) }
 
-    fun buildUpdateFieldFunc(typeName: TypeName, field: VariableElement): FunSpec =
+    fun buildUpdateFieldFunc(field: VariableElement): FunSpec =
         FunSpec.builder("update${field.simpleName.toString().capitalize()}").apply {
-            returns(typeName)
+            returns(type)
             addParameter(field.simpleName.toString(), field.asKotlinType())
             addStatement("return apply { objCopy = objCopy.copy(${field.simpleName} = ${field.simpleName}) }")
         }.build()
 
-    fun buildUpdateObjectFunc(typeName: TypeName): FunSpec = FunSpec.builder("update").apply {
-        returns(typeName)
+    fun buildUpdateObjectFunc(): FunSpec = FunSpec.builder("update").apply {
+        returns(type)
 
         val parameterStmt = mutableListOf<String>()
         model.fields.forEach { field ->
@@ -80,8 +81,8 @@ class CollectionUpdaterWriter(
         addStatement("return apply { objCopy = objCopy.copy(${parameterStmt.joinToString(", ")}) }")
     }.build()
 
-    fun buildUpdate(typeName: TypeName): FunSpec = FunSpec.builder("update").apply {
-        returns(typeName)
+    fun buildUpdate(): FunSpec = FunSpec.builder("update").apply {
+        returns(type)
         addStatement(
             "return apply { task = ${model.propertyName}.documentReference?.update(objCopy.toData()) ?: throw %T(%S) }",
             IllegalStateException::class,
@@ -89,19 +90,22 @@ class CollectionUpdaterWriter(
         )
     }.build()
 
-    fun buildListenerFuncs(typeName: TypeName): List<FunSpec> = listOf(
+    fun buildListenerFuncs(): List<FunSpec> = listOf(
         FunSpec.builder("addOnSuccessListener").apply {
-            returns(typeName)
-            addParameter("onSuccessListener", Types.Listener.OnSuccessListener.parameterizedBy(Void::class.asTypeName()))
+            returns(type)
+            addParameter(
+                "onSuccessListener",
+                Types.Listener.OnSuccessListener.parameterizedBy(Void::class.asTypeName())
+            )
             addStatement("return apply { task?.addOnSuccessListener(onSuccessListener) }")
         }.build(),
         FunSpec.builder("addOnCanceledListener").apply {
-            returns(typeName)
+            returns(type)
             addParameter("onCanceledListener", Types.Listener.OnCanceledListener)
             addStatement("return apply { task?.addOnCanceledListener(onCanceledListener) }")
         }.build(),
         FunSpec.builder("addOnFailureListener").apply {
-            returns(typeName)
+            returns(type)
             addParameter("onFailureListener", Types.Listener.OnFailureListener)
             addStatement("return apply { task?.addOnFailureListener(onFailureListener) }")
         }.build()

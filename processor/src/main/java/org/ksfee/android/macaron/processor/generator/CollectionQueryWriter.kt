@@ -5,7 +5,6 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import org.ksfee.android.macaron.processor.generator.ext.asKotlinType
 import org.ksfee.android.macaron.processor.generator.ext.fieldName
 import org.ksfee.android.macaron.processor.generator.ext.isNullable
-import org.ksfee.android.macaron.processor.generator.ext.optionalBuilder
 import org.ksfee.android.macaron.processor.generator.model.CollectionModel
 import org.ksfee.android.macaron.processor.generator.util.Types
 
@@ -13,17 +12,18 @@ class CollectionQueryWriter(
     private val model: CollectionModel
 ) : MacaronWriter() {
 
-    private val objectName: String = model.className + QUERY_CLASS_SUFFIX
+    private val className: String = model.className + QUERY_CLASS_SUFFIX
+
+    private val type = ClassName(model.packageName, className)
 
     override fun write() {
-        FileSpec.builder(model.packageName, objectName).apply {
+        FileSpec.builder(model.packageName, className).apply {
             indent(DEFAULT_INDENT)
             addType(buildQueryType())
         }.build().writeTo(model.context.outDir)
     }
 
-    private fun buildQueryType(): TypeSpec = TypeSpec.classBuilder(objectName).apply {
-        val typeName = ClassName(model.packageName, objectName)
+    private fun buildQueryType(): TypeSpec = TypeSpec.classBuilder(className).apply {
         // property
         addProperties(buildProperties())
 
@@ -31,9 +31,9 @@ class CollectionQueryWriter(
         addFunctions(buildWhereEqualToFuncs())
         addFunctions(buildOrderByFuncs())
         addFunction(buildLimitFunc())
-        addFunction(buildGetFunc(typeName))
+        addFunction(buildGetFunc())
         addFunction(buildDeserializeFunc())
-        addFunctions(buildListenerFuncs(typeName))
+        addFunctions(buildListenerFuncs())
     }.build()
 
     private fun buildProperties(): List<PropertySpec> =
@@ -96,7 +96,7 @@ class CollectionQueryWriter(
         model.fields.map {field ->
             FunSpec.builder("${field.simpleName}EqualTo").apply {
                 addParameter(field.simpleName.toString(), field.asKotlinType())
-                returns(ClassName(model.packageName, objectName))
+                returns(type)
                 addStatement(
                     "return apply { query.whereEqualTo(%S, ${field.simpleName}) }",
                     field.fieldName()
@@ -122,24 +122,24 @@ class CollectionQueryWriter(
             addStatement("return apply { query.limit(limit) }")
         }.build()
 
-    private fun buildGetFunc(typeName: TypeName): FunSpec = FunSpec.builder("get").apply {
-        returns(typeName)
+    private fun buildGetFunc(): FunSpec = FunSpec.builder("get").apply {
+        returns(type)
         addStatement("return apply { task = query.get() }")
     }.build()
 
-    private fun buildListenerFuncs(typeName: TypeName): List<FunSpec> = listOf(
+    private fun buildListenerFuncs(): List<FunSpec> = listOf(
         FunSpec.builder("addOnSuccessListener").apply {
-            returns(typeName)
+            returns(type)
             addParameter("onSuccessListener", Types.Listener.OnSuccessListener.parameterizedBy(List::class.asTypeName().parameterizedBy(model.type)))
             addStatement("return apply { task?.addOnSuccessListener { onSuccessListener.onSuccess(it.map { deserialize(it.reference, it.data) }) } }")
         }.build(),
         FunSpec.builder("addOnCanceledListener").apply {
-            returns(typeName)
+            returns(type)
             addParameter("onCanceledListener", Types.Listener.OnCanceledListener)
             addStatement("return apply { task?.addOnCanceledListener(onCanceledListener) }")
         }.build(),
         FunSpec.builder("addOnFailureListener").apply {
-            returns(typeName)
+            returns(type)
             addParameter("onFailureListener", Types.Listener.OnFailureListener)
             addStatement("return apply { task?.addOnFailureListener(onFailureListener) }")
         }.build()

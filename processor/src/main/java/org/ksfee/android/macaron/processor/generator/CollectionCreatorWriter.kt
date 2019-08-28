@@ -18,14 +18,12 @@ class CollectionCreatorWriter(
     }
 
     fun buildCreatorType(): TypeSpec = TypeSpec.classBuilder(objectName).apply {
-        val typeName = ClassName(model.packageName, objectName)
-
         // property
         addProperties(buildProperties())
 
         // function
         addFunction(buildCreateFunction())
-        addFunction(buildCreateWithPathFunction(typeName))
+        addFunction(buildCreateWithPathFunction())
     }.build()
 
     fun buildProperties(): List<PropertySpec> = listOf(
@@ -35,20 +33,18 @@ class CollectionCreatorWriter(
         }.build()
     )
 
-    fun buildCreateFunction(): FunSpec =
-        FunSpec.builder("create").apply {
-            returns(Types.Task.parameterizedBy(Void::class.asTypeName()))
-            addParameter(model.propertyName, model.type)
-            addStatement("return reference.document().set(${model.propertyName}.toData())")
-        }.build()
+    fun buildCreateFunction(): FunSpec = FunSpec.builder("create").apply {
+        returns(Types.Task.parameterizedBy(Void::class.asTypeName()))
+        addParameter(model.propertyName, model.type)
+        addStatement("return reference.document().set(${model.propertyName}.toData())")
+    }.build()
 
-    fun buildCreateWithPathFunction(typeName: TypeName): FunSpec =
-        FunSpec.builder("createWithId").apply {
-            returns(Types.Task.parameterizedBy(Void::class.asTypeName()))
-            addParameter(model.propertyName, model.type)
-            addParameter("documentPath", String::class)
-            addStatement("return reference.document(documentPath).set(${model.propertyName}.toData())")
-        }.build()
+    fun buildCreateWithPathFunction(): FunSpec = FunSpec.builder("createWithId").apply {
+        returns(Types.Task.parameterizedBy(Void::class.asTypeName()))
+        addParameter(model.propertyName, model.type)
+        addParameter("documentPath", String::class)
+        addStatement("return reference.document(documentPath).set(${model.propertyName}.toData())")
+    }.build()
 
     companion object {
         private const val CREATOR_CLASS_SUFFIX = "Creator"

@@ -1,5 +1,6 @@
 package org.ksfee.android.macaron.processor.generator.model
 
+import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asClassName
 import org.ksfee.android.macaron.annotation.Collection
