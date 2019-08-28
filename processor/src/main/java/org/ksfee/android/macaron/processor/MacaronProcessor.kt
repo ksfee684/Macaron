@@ -61,34 +61,24 @@ class MacaronProcessingStep(
             .filterIsInstance<TypeElement>()
             .map { GeneratorContext(it, elementUtils, processingEnvironment, outDir) }
             .map { CollectionModel(it) }
-            .forEach {
-                buildCreator(it)
-                buildQuerie(it)
-                buildUpdater(it)
-                buildDeleter(it)
-                buildObjectMapper(it)
-            }
+            .forEach { buildWriters(it) }
 
         return mutableSetOf()
     }
 
-    private fun buildCreator(collectionModel: CollectionModel) {
-        CollectionCreatorWriter(collectionModel).write()
+    private fun buildWriters(collectionModel: CollectionModel) {
+        WRITER_REGISTRY.forEach {
+            it.getConstructor(CollectionModel::class.java).newInstance(collectionModel).write()
+        }
     }
 
-    private fun buildQuerie(collectionModel: CollectionModel) {
-        CollectionQueryWriter(collectionModel).write()
-    }
-
-    private fun buildUpdater(collectionModel: CollectionModel) {
-        CollectionUpdaterWriter(collectionModel).write()
-    }
-
-    private fun buildDeleter(collectionModel: CollectionModel) {
-        CollectionDeleterWriter(collectionModel).write()
-    }
-
-    private fun buildObjectMapper(collectionModel: CollectionModel) {
-        CollectionMapperWriter(collectionModel).write()
+    companion object {
+        private val WRITER_REGISTRY: List<Class<out MacaronWriter>> = listOf(
+            CollectionCreatorWriter::class.java,
+            CollectionDeleterWriter::class.java,
+            CollectionMapperWriter::class.java,
+            CollectionQueryWriter::class.java,
+            CollectionUpdaterWriter::class.java
+        )
     }
 }
