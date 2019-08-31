@@ -25,12 +25,15 @@ dependencies {
     kapt project(':processor')
 
     implementation project(':library')
+    implementation project(':rx-binding')
 
     implementation Kotlin.StdLib
     implementation Jetpack.AppCompat
     implementation Jetpack.CoreKtx
     implementation Jetpack.ConstraintLayout
     implementation Jetpack.Material
+    implementation CommonLib.RxJava
+    implementation CommonLib.RxAndroid
 
     testImplementation TestLib.JUnit
 

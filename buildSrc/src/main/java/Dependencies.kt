@@ -13,6 +13,7 @@ object Version {
     const val JetbrainsAnnotation = "16.0.2"
     const val Material = "1.0.0"
     const val RxJava = "2.2.12"
+    const val RxAndroid = "2.1.1"
 }
 
 object Kotlin {
@@ -41,6 +42,7 @@ object AptLib {
 
 object CommonLib {
     const val RxJava = "io.reactivex.rxjava2:rxjava:${Version.RxJava}"
+    const val RxAndroid = "io.reactivex.rxjava2:rxandroid:${Version.RxAndroid}"
 }
 
 object TestLib {

@@ -1,7 +1,9 @@
 package org.ksfee.android.macaron.sample
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,13 +12,16 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.FirebaseApp
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_user_list.*
 import kotlinx.android.synthetic.main.item_user.view.*
 import org.ksfee.android.macaron.R
 import org.ksfee.android.macaron.sample.model.User
 import org.ksfee.android.macaron.sample.model.UserCreator
 import org.ksfee.android.macaron.sample.model.UserQuery
-import org.ksfee.android.macaron.sample.model.delete
+import org.ksfee.android.rx_binding.ext.createAsSingle
+import org.ksfee.android.rx_binding.ext.getAsSingle
 import java.util.*
 
 class UserListActivity : AppCompatActivity() {
@@ -27,20 +32,29 @@ class UserListActivity : AppCompatActivity() {
         FirebaseApp.initializeApp(this)
 
         fab.setOnClickListener {
-            UserCreator().create(
-                User(name = "Mike", age = 25, description = null, createdAt = Date().time)
-            )
-                .addOnSuccessListener(OnSuccessListener {
+            UserCreator()
+                .createAsSingle(
+                    User(name = "Mike", age = 25, description = null, createdAt = Date().time)
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe({
                     fetchUsers()
+                }, {
+                    Log.e(TAG, "Couldn't create user", it)
                 })
         }
         fetchUsers()
     }
 
+    @SuppressLint("CheckResult")
+    @Suppress("unused")
     private fun fetchUsers() {
         UserQuery()
-            .get()
-            .addOnSuccessListener(OnSuccessListener {
+            .getAsSingle()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe({
                 user_list.adapter = UserAdapter(this@UserListActivity, it)
                 user_list.setOnItemLongClickListener { _, _, position, _ ->
                     (user_list.adapter.getItem(position) as User)
@@ -52,7 +66,13 @@ class UserListActivity : AppCompatActivity() {
                     true
                 }
                 Toast.makeText(this@UserListActivity, "Fetched!", Toast.LENGTH_SHORT).show()
+            }, {
+                Log.e(TAG, "Couldn't get users", it)
             })
+    }
+
+    companion object {
+        private val TAG = UserListActivity::class.java.simpleName
     }
 }
 
