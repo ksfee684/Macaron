@@ -12,6 +12,7 @@ object Version {
     const val MockitoKotlin = "2.1.0"
     const val JetbrainsAnnotation = "16.0.2"
     const val Material = "1.0.0"
+    const val RxJava = "2.2.12"
 }
 
 object Kotlin {
@@ -36,6 +37,10 @@ object Firebase {
 object AptLib {
     const val AutoService = "com.google.auto.service:auto-service:${Version.AutoService}"
     const val KotlinPoet = "com.squareup:kotlinpoet:${Version.KotlinPoet}"
+}
+
+object CommonLib {
+    const val RxJava = "io.reactivex.rxjava2:rxjava:${Version.RxJava}"
 }
 
 object TestLib {

@@ -14,8 +14,6 @@ class CollectionQueryWriter(
 
     private val className: String = model.className + QUERY_CLASS_SUFFIX
 
-    private val type = ClassName(model.packageName, className)
-
     override fun write() {
         FileSpec.builder(model.packageName, className).apply {
             indent(DEFAULT_INDENT)
@@ -24,20 +22,40 @@ class CollectionQueryWriter(
     }
 
     private fun buildQueryType(): TypeSpec = TypeSpec.classBuilder(className).apply {
+        // super
+        superclass(
+            Types.CollecitonController.parameterizedBy(
+                Types.QuerySnapShot,
+                List::class.asTypeName().parameterizedBy(model.type)
+            )
+        )
+
         // property
         addProperties(buildProperties())
 
         // function
+        addFunctions(buildListenerFuncs())
         addFunctions(buildWhereEqualToFuncs())
         addFunctions(buildOrderByFuncs())
         addFunction(buildLimitFunc())
         addFunction(buildGetFunc())
-        addFunction(buildDeserializeFunc())
-        addFunctions(buildListenerFuncs())
+
+        // companion
+        addType(buildCompanionObject())
     }.build()
+
+    private fun buildCompanionObject(): TypeSpec =
+        TypeSpec.companionObjectBuilder().apply {
+            addFunction(buildDeserializeFunc())
+        }.build()
 
     private fun buildProperties(): List<PropertySpec> =
         listOf(
+            PropertySpec.builder("task", Types.Task.parameterizedBy(Types.QuerySnapShot).copy(nullable = true)).apply {
+                mutable()
+                addModifiers(KModifier.OVERRIDE)
+                initializer("null")
+            }.build(),
             PropertySpec.builder("reference", Types.CollectionReference).apply {
                 initializer(
                     "%T.getInstance().collection(%S)",
@@ -50,11 +68,6 @@ class CollectionQueryWriter(
                 mutable()
                 addModifiers(KModifier.PRIVATE)
                 initializer("reference")
-            }.build(),
-            PropertySpec.builder("task", Types.Task.parameterizedBy(Types.QuerySnapShot).copy(nullable = true)).apply {
-                mutable()
-                initializer("null")
-                addModifiers(KModifier.PRIVATE)
             }.build()
         )
 
@@ -80,6 +93,7 @@ class CollectionQueryWriter(
 
         return FunSpec.builder("deserialize").apply {
             returns(model.type)
+            addModifiers(KModifier.PRIVATE)
             addParameter("reference", Types.DocumentReference)
             addParameter(
                 "data",
@@ -96,7 +110,6 @@ class CollectionQueryWriter(
         model.fields.map {field ->
             FunSpec.builder("${field.simpleName}EqualTo").apply {
                 addParameter(field.simpleName.toString(), field.asKotlinType())
-                returns(type)
                 addStatement(
                     "return apply { query.whereEqualTo(%S, ${field.simpleName}) }",
                     field.fieldName()
@@ -112,7 +125,9 @@ class CollectionQueryWriter(
                         defaultValue("Query.Direction.ASCENDING")
                     }.build()
                 )
-                addStatement("return apply { query.orderBy(%S, direction) }", field.fieldName())
+                beginControlFlow("return apply")
+                addStatement("query.orderBy(%S, direction)", field.fieldName())
+                endControlFlow()
             }.build()
         }
 
@@ -123,25 +138,37 @@ class CollectionQueryWriter(
         }.build()
 
     private fun buildGetFunc(): FunSpec = FunSpec.builder("get").apply {
-        returns(type)
         addStatement("return apply { task = query.get() }")
     }.build()
 
     private fun buildListenerFuncs(): List<FunSpec> = listOf(
         FunSpec.builder("addOnSuccessListener").apply {
-            returns(type)
-            addParameter("onSuccessListener", Types.Listener.OnSuccessListener.parameterizedBy(List::class.asTypeName().parameterizedBy(model.type)))
-            addStatement("return apply { task?.addOnSuccessListener { onSuccessListener.onSuccess(it.map { deserialize(it.reference, it.data) }) } }")
+            addModifiers(KModifier.OVERRIDE)
+            addParameter(
+                "onSuccessListener",
+                Types.Listener.OnSuccessListener.parameterizedBy(
+                    List::class.asTypeName().parameterizedBy(model.type)
+                )
+            )
+            beginControlFlow("return apply")
+            beginControlFlow("task?.addOnSuccessListener")
+            addStatement("onSuccessListener.onSuccess(it.map { deserialize(it.reference, it.data) })")
+            endControlFlow()
+            endControlFlow()
         }.build(),
         FunSpec.builder("addOnCanceledListener").apply {
-            returns(type)
+            addModifiers(KModifier.OVERRIDE)
             addParameter("onCanceledListener", Types.Listener.OnCanceledListener)
-            addStatement("return apply { task?.addOnCanceledListener(onCanceledListener) }")
+            beginControlFlow("return apply")
+            addStatement("task?.addOnCanceledListener(onCanceledListener)")
+            endControlFlow()
         }.build(),
         FunSpec.builder("addOnFailureListener").apply {
-            returns(type)
+            addModifiers(KModifier.OVERRIDE)
             addParameter("onFailureListener", Types.Listener.OnFailureListener)
-            addStatement("return apply { task?.addOnFailureListener(onFailureListener) }")
+            beginControlFlow("return apply")
+            addStatement("task?.addOnFailureListener(onFailureListener)")
+            endControlFlow()
         }.build()
     )
 

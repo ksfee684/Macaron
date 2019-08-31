@@ -45,10 +45,10 @@ class UserListActivity : AppCompatActivity() {
                 user_list.setOnItemLongClickListener { _, _, position, _ ->
                     (user_list.adapter.getItem(position) as User)
                         .delete()
-                        .addOnSuccessListener {
+                        .addOnSuccessListener(OnSuccessListener {
                             Toast.makeText(this@UserListActivity, "Deleted!", Toast.LENGTH_SHORT).show()
                             fetchUsers()
-                        }
+                        })
                     true
                 }
                 Toast.makeText(this@UserListActivity, "Fetched!", Toast.LENGTH_SHORT).show()
