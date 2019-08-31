@@ -23,21 +23,20 @@ class CollectionUpdaterWriter(
     private fun buildUpdaterType(): TypeSpec =
         TypeSpec.classBuilder(className).apply {
             // super
-            superclass(
-                Types.CollecitonController.parameterizedBy(Void::class.asTypeName(), model.type)
-            )
+            superclass(Types.Controller.CollectionUpdater.parameterizedBy(model.type))
+            addSuperclassConstructorParameter(model.propertyName)
+
+            // property
+            addProperty(buildProperty())
 
             // constructor
             primaryConstructor(buildConstructor())
 
-            // propertyp
-            addProperties(buildProperties())
-
             // function
+            addFunction(buildOnSuccessListener())
             addFunctions(buildUpdateFieldFuncs())
             addFunction(buildUpdateObjectFunc())
             addFunction(buildUpdate())
-            addFunctions(buildListenerFuncs())
         }.build()
 
     private fun buildConstructor(): FunSpec =
@@ -45,21 +44,12 @@ class CollectionUpdaterWriter(
             addParameter(model.propertyName, model.type)
         }.build()
 
-    private fun buildProperties(): List<PropertySpec> = listOf(
-        PropertySpec.builder("task", Types.Task.parameterizedBy(Void::class.asTypeName()).copy(nullable = true)).apply {
-            initializer("null")
-            mutable()
-            addModifiers(KModifier.OVERRIDE)
-        }.build(),
-        PropertySpec.builder(model.propertyName, model.type).apply {
-            initializer(model.propertyName)
-            addModifiers(KModifier.PRIVATE)
-        }.build(),
+    private fun buildProperty(): PropertySpec =
         PropertySpec.builder("objCopy", model.type).apply {
-            initializer("${model.propertyName}.copy()")
+            addModifiers(KModifier.PRIVATE)
             mutable()
+            initializer(model.propertyName)
         }.build()
-    )
 
     private fun buildUpdateFieldFuncs(): List<FunSpec> =
         model.fields.map { buildUpdateFieldFunc(it) }
@@ -91,16 +81,17 @@ class CollectionUpdaterWriter(
 
     private fun buildUpdate(): FunSpec =
         FunSpec.builder("update").apply {
+            addModifiers(KModifier.OVERRIDE)
             beginControlFlow("return apply")
             addStatement(
-                "task = ${model.propertyName}.documentReference?.update(objCopy.toData()) ?: throw %T(%S)",
+                "task = model.documentReference?.update(objCopy.toData()) ?: throw %T(%S)",
                 IllegalStateException::class,
                 "Document doesn't have reference."
             )
             endControlFlow()
         }.build()
 
-    private fun buildListenerFuncs(): List<FunSpec> = listOf(
+    private fun buildOnSuccessListener(): FunSpec =
         FunSpec.builder("addOnSuccessListener").apply {
             addParameter(
                 "onSuccessListener",
@@ -110,22 +101,7 @@ class CollectionUpdaterWriter(
             beginControlFlow("return apply")
             addStatement("task?.addOnSuccessListener { onSuccessListener.onSuccess(objCopy) }")
             endControlFlow()
-        }.build(),
-        FunSpec.builder("addOnCanceledListener").apply {
-            addParameter("onCanceledListener", Types.Listener.OnCanceledListener)
-            addModifiers(KModifier.OVERRIDE)
-            beginControlFlow("return apply")
-            addStatement("task?.addOnCanceledListener(onCanceledListener)")
-            endControlFlow()
-        }.build(),
-        FunSpec.builder("addOnFailureListener").apply {
-            addParameter("onFailureListener", Types.Listener.OnFailureListener)
-            addModifiers(KModifier.OVERRIDE)
-            beginControlFlow("return apply")
-            addStatement("task?.addOnFailureListener(onFailureListener)")
-            endControlFlow()
         }.build()
-    )
 
     companion object {
         private const val UPDATER_CLASS_SUFFIX = "Updater"
