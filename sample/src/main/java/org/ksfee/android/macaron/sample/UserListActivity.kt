@@ -10,7 +10,6 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.FirebaseApp
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -20,8 +19,6 @@ import org.ksfee.android.macaron.R
 import org.ksfee.android.macaron.sample.model.User
 import org.ksfee.android.macaron.sample.model.UserCreator
 import org.ksfee.android.macaron.sample.model.UserQuery
-import org.ksfee.android.rx_binding.ext.createAsSingle
-import org.ksfee.android.rx_binding.ext.getAsSingle
 import java.util.*
 
 class UserListActivity : AppCompatActivity() {
@@ -32,7 +29,7 @@ class UserListActivity : AppCompatActivity() {
         FirebaseApp.initializeApp(this)
 
         fab.setOnClickListener {
-            UserCreator()
+            UserCreator
                 .createAsSingle(
                     User(name = "Mike", age = 25, description = null, createdAt = Date().time)
                 )
@@ -48,9 +45,8 @@ class UserListActivity : AppCompatActivity() {
     }
 
     @SuppressLint("CheckResult")
-    @Suppress("unused")
     private fun fetchUsers() {
-        UserQuery()
+        UserQuery
             .getAsSingle()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
@@ -58,11 +54,13 @@ class UserListActivity : AppCompatActivity() {
                 user_list.adapter = UserAdapter(this@UserListActivity, it)
                 user_list.setOnItemLongClickListener { _, _, position, _ ->
                     (user_list.adapter.getItem(position) as User)
-                        .delete()
-                        .addOnSuccessListener(OnSuccessListener {
+                        .deleteAsCompletable()
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribeOn(Schedulers.io())
+                        .subscribe {
                             Toast.makeText(this@UserListActivity, "Deleted!", Toast.LENGTH_SHORT).show()
                             fetchUsers()
-                        })
+                        }
                     true
                 }
                 Toast.makeText(this@UserListActivity, "Fetched!", Toast.LENGTH_SHORT).show()

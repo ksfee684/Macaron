@@ -21,7 +21,7 @@ class CollectionMapperWriter(
         }.build().writeTo(model.context.outDir)
     }
 
-    fun buildObjectMapFun(): FunSpec = FunSpec.builder("toData").apply {
+    private fun buildObjectMapFun(): FunSpec = FunSpec.builder("toData").apply {
         val dataType = Map::class.asClassName().parameterizedBy(
             String::class.asTypeName(),
             Any::class.java.asTypeName().asKotlinType().copy(nullable = true)

@@ -25,7 +25,6 @@ dependencies {
     kapt project(':processor')
 
     implementation project(':library')
-    implementation project(':rx-binding')
 
     implementation Kotlin.StdLib
     implementation Jetpack.AppCompat

@@ -25,15 +25,20 @@ class CollectionQueryWriter(
     private fun buildQueryType(): TypeSpec = TypeSpec.classBuilder(className).apply {
         // super
         superclass(
-            Types.Controller.CollectionQuery.parameterizedBy(model.type)
+            Types.Controller.RxCollectionQuery.parameterizedBy(model.type)
         )
         addSuperclassConstructorParameter("%S", model.collectionPath)
+
+        // constructor
+        primaryConstructor(FunSpec.constructorBuilder().addModifiers(KModifier.PRIVATE).build())
 
         // function
         addFunctions(buildWhereEqualToFuncs())
         addFunctions(buildOrderByFuncs())
         addFunction(buildDeserializeFunc())
 
+        // companion
+        addType(buildCompanionObject())
     }.build()
 
     private fun buildDeserializeFunc(): FunSpec {
@@ -98,6 +103,26 @@ class CollectionQueryWriter(
                 endControlFlow()
             }.build()
         }
+
+    private fun buildCompanionObject(): TypeSpec =
+        TypeSpec.companionObjectBuilder().apply {
+            addFunctions(buildQueryAliases())
+        }.build()
+
+    private fun buildQueryAliases(): List<FunSpec> {
+        val queryType = ClassName(model.packageName, className)
+        return listOf(
+            FunSpec.builder("get").apply {
+                addStatement("return %T().get()", queryType)
+            }.build(),
+            FunSpec.builder("getAsObservable").apply {
+                addStatement("return %T().getAsObservable()", queryType)
+            }.build(),
+            FunSpec.builder("getAsSingle").apply {
+                addStatement("return %T().getAsSingle()", queryType)
+            }.build()
+        )
+    }
 
     companion object {
         private const val QUERY_CLASS_SUFFIX = "Query"

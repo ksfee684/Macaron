@@ -32,14 +32,12 @@ object Types {
 
     // library module
     object Controller {
-        val CollectionCreator =
-            ClassName("org.ksfee.android.macaron.library.controller", "CollectionCreator")
-        val CollectionDelete =
-            ClassName("org.ksfee.android.macaron.library.controller", "CollectionDeleter")
-        val CollectionQuery =
-            ClassName("org.ksfee.android.macaron.library.controller", "CollectionQuery")
-        val CollectionUpdater =
-            ClassName("org.ksfee.android.macaron.library.controller", "CollectionUpdater")
+        val RxCollectionCreator =
+            ClassName("org.ksfee.android.macaron.library.controller.rx", "RxCollectionCreator")
+        val RxCollectionQuery =
+            ClassName("org.ksfee.android.macaron.library.controller.rx", "RxCollectionQuery")
+        val RxCollectionUpdater =
+            ClassName("org.ksfee.android.macaron.library.controller.rx", "RxCollectionUpdater")
     }
     val TypedValue =
         ClassName("org.ksfee.android.macaron.library.ext", "typedValue")

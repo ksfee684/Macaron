@@ -1,26 +1,21 @@
-package org.ksfee.android.macaron.library.model
+package org.ksfee.android.macaron.library.controller.rx
 
 import com.google.android.gms.tasks.OnCanceledListener
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
-import com.google.firebase.firestore.DocumentReference
-import io.reactivex.Completable
-import org.ksfee.android.macaron.library.controller.CollectionDeleter
+import io.reactivex.Single
+import org.ksfee.android.macaron.library.controller.CollectionUpdater
 import org.ksfee.android.macaron.library.controller.rx.exception.TaskCancelException
 import org.ksfee.android.macaron.library.controller.rx.exception.TaskFailureException
+import org.ksfee.android.macaron.library.model.CollectionModel
 
-abstract class CollectionModel {
-    var documentReference: DocumentReference? = null
-
-    fun delete() = CollectionDeleter().apply {
-        enqueueTask(documentReference?.delete()
-            ?: throw IllegalStateException("User doesn't have a document reference."))
-    }
-
-    fun deleteAsCompletable() = Completable.create { emitter ->
-        delete()
+abstract class RxCollectionUpdater<R : CollectionModel>(
+    model: R
+) : CollectionUpdater<R>(model) {
+    fun updateAsSingle() = Single.create<R> { emitter ->
+        update()
             .addOnSuccessListener(OnSuccessListener {
-                emitter.onComplete()
+                emitter.onSuccess(it)
             })
             .addOnCanceledListener(OnCanceledListener {
                 emitter.onError(TaskCancelException())

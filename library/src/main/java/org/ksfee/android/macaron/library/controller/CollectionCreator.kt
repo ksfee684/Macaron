@@ -10,22 +10,38 @@ import org.ksfee.android.macaron.library.model.CollectionModel
 abstract class CollectionCreator<R : CollectionModel>(
     collectionPath: String
 ) : CollectionController<Void, R>() {
-    override var task: Task<Void>? = null
-
-    protected val reference: CollectionReference =
-        FirebaseFirestore.getInstance().collection(collectionPath)
-
-    protected lateinit var document: DocumentReference
-
     protected lateinit var model: R
 
+    private val reference: CollectionReference =
+        FirebaseFirestore.getInstance().collection(collectionPath)
+
+    private lateinit var document: DocumentReference
+
     override fun addOnSuccessListener(onSuccessListener: OnSuccessListener<R>) = apply {
-        task?.addOnSuccessListener {
-            onSuccessListener.onSuccess(model.apply { documentReference = document })
+        taskMap.forEach {
+            it.value.addOnSuccessListener {
+                onSuccessListener.onSuccess(model.apply { documentReference = document })
+            }
         }
     }
 
-    abstract fun create(model: R): CollectionCreator<R>
+    protected abstract fun serialize(): Map<String, Any?>
 
-    abstract fun createWithId(model: R, documentPath: String): CollectionCreator<R>
+    fun create(model: R) = apply {
+        enqueueTask(create(model, reference.document()))
+    }
+
+    fun create(model: R, documentPath: String) = apply {
+        enqueueTask(create(model, reference.document(documentPath)))
+    }
+
+    fun createAll(models: Collection<R>) = apply {
+        models.forEach { model -> enqueueTask(create(model, reference.document())) }
+    }
+
+    private fun create(model: R, document: DocumentReference): Task<Void> {
+        this.document = document
+        this.model = model
+        return document.set(serialize())
+    }
 }

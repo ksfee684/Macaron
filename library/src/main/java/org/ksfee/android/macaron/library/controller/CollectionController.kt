@@ -4,19 +4,27 @@ import com.google.android.gms.tasks.*
 
 abstract class CollectionController<T, R> {
 
-    abstract var task: Task<T>?
+    protected val taskMap: MutableMap<Int, Task<T>> = mutableMapOf()
+
+    fun enqueueTask(task: Task<T>) {
+        taskMap[task.hashCode()] = task.apply { addOnCompleteListener { dequeueTask(it) } }
+    }
+
+    protected fun dequeueTask(task: Task<T>) {
+        taskMap.remove(task.hashCode())
+    }
 
     abstract fun addOnSuccessListener(onSuccessListener: OnSuccessListener<R>): CollectionController<T, R>
 
     fun addOnCanceledListener(onCanceledListener: OnCanceledListener) = apply {
-        task?.addOnCanceledListener(onCanceledListener)
+        taskMap.forEach { it.value.addOnCanceledListener(onCanceledListener) }
     }
 
     fun addOnFailureListener(onFailureListener: OnFailureListener) = apply {
-        task?.addOnFailureListener(onFailureListener)
+        taskMap.forEach { it.value.addOnFailureListener(onFailureListener) }
     }
 
     fun addOnCompleteListener(onCompleteListener: OnCompleteListener<T>) {
-        task?.addOnCompleteListener(onCompleteListener)
+        taskMap.forEach { it.value.addOnCompleteListener(onCompleteListener) }
     }
 }

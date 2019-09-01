@@ -32,6 +32,7 @@ dependencies {
 
     implementation Kotlin.StdLib
     implementation Jetpack.AppCompat
+    implementation CommonLib.RxJava
 
     testImplementation TestLib.JUnit
 }
