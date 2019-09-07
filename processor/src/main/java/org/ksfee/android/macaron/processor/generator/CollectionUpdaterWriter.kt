@@ -40,7 +40,6 @@ class CollectionUpdaterWriter(
             addFunctions(buildUpdateFieldFuncs())
             addFunction(buildUpdateObjectFunc())
             addFunction(buildUpdate())
-            addFunction(buildUpdateAsSingle())
         }.build()
 
     private fun buildConstructor(): FunSpec =
@@ -65,13 +64,6 @@ class CollectionUpdaterWriter(
             addStatement("objCopy = objCopy.copy(${field.simpleName} = ${field.simpleName})")
             endControlFlow()
         }.build()
-
-    private fun buildModelParameters(): List<ParameterSpec> =
-        model.fields.map { field ->
-            ParameterSpec.builder(field.simpleName.toString(), field.asKotlinType()).apply {
-                defaultValue("objCopy.${field.simpleName}")
-            }.build()
-        }
 
     private fun buildUpdateObjectFunc(): FunSpec =
         FunSpec.builder("update").apply {
@@ -112,12 +104,6 @@ class CollectionUpdaterWriter(
             beginControlFlow("return apply")
             addStatement("taskMap.forEach { it.value.addOnSuccessListener { onSuccessListener.onSuccess(objCopy) } }")
             endControlFlow()
-        }.build()
-
-    private fun buildUpdateAsSingle(): FunSpec =
-        FunSpec.builder("updateAsSingle").apply {
-            addParameters(buildModelParameters())
-            addStatement("return update(${model.fields.joinToString(", ") { it.simpleName }})")
         }.build()
 
     companion object {

@@ -14,6 +14,10 @@ object Types {
         ClassName("com.google.firebase.firestore", "QuerySnapshot")
     val DocumentReference =
         ClassName("com.google.firebase.firestore", "DocumentReference")
+    val DocumentSnapshot =
+        ClassName("com.google.firebase.firestore", "DocumentSnapshot")
+    val QueryDocumentSnapshot =
+        ClassName("com.google.firebase.firestore", "QueryDocumentSnapshot")
     val Task =
         ClassName("com.google.android.gms.tasks", "Task")
     val Direction =
@@ -36,9 +40,17 @@ object Types {
             ClassName("org.ksfee.android.macaron.library.controller.rx", "RxCollectionCreator")
         val RxCollectionQuery =
             ClassName("org.ksfee.android.macaron.library.controller.rx", "RxCollectionQuery")
+        val RxDocumentQuery =
+            ClassName("org.ksfee.android.macaron.library.controller.rx", "RxDocumentQuery")
         val RxCollectionUpdater =
             ClassName("org.ksfee.android.macaron.library.controller.rx", "RxCollectionUpdater")
     }
+
+    object Exception {
+        val DocumentNotFoundException =
+            ClassName("org.ksfee.android.macaron.library.controller.exception", "DocumentNotFoundException")
+    }
+
     val TypedValue =
         ClassName("org.ksfee.android.macaron.library.ext", "typedValue")
     val TypedNullableValue =

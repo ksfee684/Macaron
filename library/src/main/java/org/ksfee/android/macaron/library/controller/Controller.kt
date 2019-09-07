@@ -2,7 +2,7 @@ package org.ksfee.android.macaron.library.controller
 
 import com.google.android.gms.tasks.*
 
-abstract class CollectionController<T, R> {
+abstract class Controller<T, R> {
 
     protected val taskMap: MutableMap<Int, Task<T>> = mutableMapOf()
 
@@ -14,7 +14,7 @@ abstract class CollectionController<T, R> {
         taskMap.remove(task.hashCode())
     }
 
-    abstract fun addOnSuccessListener(onSuccessListener: OnSuccessListener<R>): CollectionController<T, R>
+    abstract fun addOnSuccessListener(onSuccessListener: OnSuccessListener<R>): Controller<T, R>
 
     fun addOnCanceledListener(onCanceledListener: OnCanceledListener) = apply {
         taskMap.forEach { it.value.addOnCanceledListener(onCanceledListener) }

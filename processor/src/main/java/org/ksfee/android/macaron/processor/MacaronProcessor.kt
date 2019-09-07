@@ -76,7 +76,7 @@ class MacaronProcessingStep(
         private val WRITER_REGISTRY: List<Class<out MacaronWriter>> = listOf(
             CollectionCreatorWriter::class.java,
             CollectionMapperWriter::class.java,
-            CollectionQueryWriter::class.java,
+            QueryWriter::class.java,
             CollectionUpdaterWriter::class.java
         )
     }

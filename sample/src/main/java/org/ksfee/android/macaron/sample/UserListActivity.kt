@@ -2,6 +2,7 @@ package org.ksfee.android.macaron.sample
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -41,12 +42,14 @@ class UserListActivity : AppCompatActivity() {
                     Log.e(TAG, "Couldn't create user", it)
                 })
         }
+
         fetchUsers()
     }
 
     @SuppressLint("CheckResult")
     private fun fetchUsers() {
         UserQuery
+            .collection
             .getAsSingle()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
@@ -63,10 +66,23 @@ class UserListActivity : AppCompatActivity() {
                         }
                     true
                 }
+                user_list.setOnItemClickListener { _, _, position, _ ->
+                    navigateUserDetail(
+                        (user_list.adapter.getItem(position) as User).documentReference!!.id
+                    )
+                }
                 Toast.makeText(this@UserListActivity, "Fetched!", Toast.LENGTH_SHORT).show()
             }, {
                 Log.e(TAG, "Couldn't get users", it)
             })
+    }
+
+    private fun navigateUserDetail(documentPath: String) {
+        startActivity(
+            Intent(this, UserDetailActivity::class.java).apply {
+                putExtra(UserDetailActivity.EXTRA_DOCUMENT_PATH, documentPath)
+            }
+        )
     }
 
     companion object {

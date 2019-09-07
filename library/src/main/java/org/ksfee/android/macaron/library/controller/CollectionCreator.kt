@@ -9,7 +9,7 @@ import org.ksfee.android.macaron.library.model.CollectionModel
 
 abstract class CollectionCreator<R : CollectionModel>(
     collectionPath: String
-) : CollectionController<Void, R>() {
+) : Controller<Void, R>() {
     protected lateinit var model: R
 
     private val reference: CollectionReference =

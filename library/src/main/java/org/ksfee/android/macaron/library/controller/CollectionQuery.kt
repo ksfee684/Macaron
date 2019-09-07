@@ -6,20 +6,18 @@ import org.ksfee.android.macaron.library.model.CollectionModel
 
 abstract class CollectionQuery<R : CollectionModel>(
     collectionPath: String
-) : CollectionController<QuerySnapshot, List<R>>() {
+) : Controller<QuerySnapshot, List<R>>() {
     private val reference: CollectionReference =
         FirebaseFirestore.getInstance().collection(collectionPath)
 
     protected var query: Query = reference
 
-    abstract fun deserialize(documentReference: DocumentReference, data: Map<String, Any>): R
+    abstract fun deserialize(documentSnapshot: QueryDocumentSnapshot): R
 
     override fun addOnSuccessListener(onSuccessListener: OnSuccessListener<List<R>>) = apply {
         taskMap.forEach {
             it.value.addOnSuccessListener { querySnapshot ->
-                onSuccessListener.onSuccess(querySnapshot.map { documentSnapshot ->
-                    deserialize(documentSnapshot.reference, documentSnapshot.data)
-                })
+                onSuccessListener.onSuccess(querySnapshot.map { deserialize(it) })
             }
         }
     }
