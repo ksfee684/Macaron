@@ -10,13 +10,12 @@ import org.ksfee.android.macaron.processor.generator.util.Types
 
 class QueryWriter(
     private val model: CollectionModel
-) : MacaronWriter() {
+) : MacaronWriter(model.context) {
 
     private val fileName: String = model.className + QUERY_SUFFIX
 
-    override fun write() {
+    override fun buildFileSpec(): FileSpec.Builder =
         FileSpec.builder(model.packageName, fileName).apply {
-            indent(DEFAULT_INDENT)
             addImport(Types.FirestoreQuery.packageName, Types.FirestoreQuery.simpleName)
 
             val queryType = ClassName(model.packageName, fileName)
@@ -29,8 +28,7 @@ class QueryWriter(
             ))
             addType(collectionQuery.buildCollectionQueryType())
             addType(documentQuery.buildDocumentQueryType())
-        }.build().writeTo(model.context.outDir)
-    }
+        }
 
     private fun buildQueryType(collectionQuery: TypeName, documentQuery: TypeName): TypeSpec =
         TypeSpec.objectBuilder(fileName).apply {

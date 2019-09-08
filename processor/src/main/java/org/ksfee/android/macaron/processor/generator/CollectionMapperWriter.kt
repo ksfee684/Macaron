@@ -11,15 +11,12 @@ import org.ksfee.android.macaron.processor.generator.model.CollectionModel
 
 class CollectionMapperWriter(
     private val model: CollectionModel
-) : MacaronWriter() {
+) : MacaronWriter(model.context) {
             
     private val objectName: String = model.className + MAPPER_CLASS_SUFFIX
 
-    override fun write() {
-        FileSpec.builder(model.packageName, objectName).apply {
-            addFunction(buildObjectMapFun())
-        }.build().writeTo(model.context.outDir)
-    }
+    override fun buildFileSpec(): FileSpec.Builder =
+        FileSpec.builder(model.packageName, objectName).addFunction(buildObjectMapFun())
 
     private fun buildObjectMapFun(): FunSpec = FunSpec.builder("toData").apply {
         val dataType = Map::class.asClassName().parameterizedBy(

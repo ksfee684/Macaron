@@ -7,15 +7,12 @@ import org.ksfee.android.macaron.processor.generator.util.Types
 
 class CollectionCreatorWriter(
     private val model: CollectionModel
-) : MacaronWriter() {
+) : MacaronWriter(model.context) {
+
     private val className: String = model.className + CREATOR_CLASS_SUFFIX
 
-    override fun write() {
-        FileSpec.builder(model.packageName, className).apply {
-            indent(DEFAULT_INDENT)
-            addType(buildCreatorType())
-        }.build().writeTo(model.context.outDir)
-    }
+    override fun buildFileSpec(): FileSpec.Builder =
+        FileSpec.builder(model.packageName, className).addType(buildCreatorType())
 
     private fun buildCreatorType(): TypeSpec =
         TypeSpec.classBuilder(className).apply {

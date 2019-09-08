@@ -9,6 +9,7 @@ dependencies {
     implementation Kotlin.StdLib
     implementation Kotlin.Reflect
     implementation Kotlin.Annotation
+
     implementation AptLib.AutoService
     implementation AptLib.KotlinPoet
 }

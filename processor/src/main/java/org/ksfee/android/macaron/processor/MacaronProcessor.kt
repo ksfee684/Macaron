@@ -1,69 +1,46 @@
 package org.ksfee.android.macaron.processor
 
-import com.google.auto.common.BasicAnnotationProcessor
 import com.google.auto.service.AutoService
-import com.google.common.collect.SetMultimap
 import org.ksfee.android.macaron.annotation.Collection
 import org.ksfee.android.macaron.processor.generator.*
 import org.ksfee.android.macaron.processor.generator.model.CollectionModel
-import java.io.File
-import javax.annotation.processing.ProcessingEnvironment
-import javax.annotation.processing.Processor
+import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.Element
-import javax.lang.model.element.ElementKind
 import javax.lang.model.element.TypeElement
-import javax.lang.model.util.Elements
+import javax.tools.Diagnostic
 
 @Suppress("unused")
 @AutoService(Processor::class)
-class MacaronProcessor : BasicAnnotationProcessor() {
-
-    override fun getSupportedSourceVersion() = SourceVersion.RELEASE_8
-
-    override fun getSupportedOptions() = mutableSetOf(KAPT_KOTLIN_GENERATED_OPTION_NAME)
-
-    override fun initSteps(): MutableIterable<ProcessingStep> {
-        val outDir = processingEnv.options[KAPT_KOTLIN_GENERATED_OPTION_NAME]
-            ?.replace("kaptKotlin", "kapt")
-            ?.let { File(it) }
-            ?: throw IllegalArgumentException("There is no output directory")
-
-        return mutableListOf(
-            MacaronProcessingStep(
-                processingEnv.elementUtils,
-                outDir,
-                processingEnv
-            )
-        )
-    }
-
-    companion object {
-        private const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
-    }
-}
-
-class MacaronProcessingStep(
-    private val elementUtils: Elements,
-    private val outDir: File,
-    private val processingEnvironment: ProcessingEnvironment
-) : BasicAnnotationProcessor.ProcessingStep {
-
-    override fun annotations() = mutableSetOf(Collection::class.java)
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
+@SupportedAnnotationTypes(value = [
+    "org.ksfee.android.macaron.annotation.Collection",
+    "org.ksfee.android.macaron.annotation.Field"
+])
+class MacaronProcessor : AbstractProcessor() {
 
     override fun process(
-        elementsByAnnotation: SetMultimap<Class<out Annotation>, Element>?
-    ): MutableSet<Element> {
-        elementsByAnnotation ?: return mutableSetOf()
+        annotations: MutableSet<out TypeElement>?,
+        roundEnv: RoundEnvironment?
+    ): Boolean {
+        if (annotations.isNullOrEmpty()) return true
 
-        elementsByAnnotation[Collection::class.java]
-            .filter { it.kind === ElementKind.CLASS }
+        try {
+            val context = GeneratorContext(processingEnv)
+
+            roundEnv?.getElementsAnnotatedWith(Collection::class.java)
+                ?.let { buildCollectionControllers(it, context) }
+        } catch (e: Exception) {
+            processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, e.message)
+        }
+
+        return false
+    }
+
+    private fun buildCollectionControllers(types: Set<Element>, context: GeneratorContext) {
+        types
             .filterIsInstance<TypeElement>()
-            .map { GeneratorContext(it, elementUtils, processingEnvironment, outDir) }
-            .map { CollectionModel(it) }
-            .forEach { buildWriters(it) }
-
-        return mutableSetOf()
+            .forEach { buildWriters(CollectionModel(context, it)) }
     }
 
     private fun buildWriters(collectionModel: CollectionModel) {

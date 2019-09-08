@@ -9,16 +9,12 @@ import javax.lang.model.element.VariableElement
 
 class CollectionUpdaterWriter(
     private val model: CollectionModel
-) : MacaronWriter() {
+) : MacaronWriter(model.context) {
 
     private val className = model.className + UPDATER_CLASS_SUFFIX
 
-    override fun write() {
-        FileSpec.builder(model.packageName, className).apply {
-            indent(DEFAULT_INDENT)
-            addType(buildUpdaterType())
-        }.build().writeTo(model.context.outDir)
-    }
+    override fun buildFileSpec(): FileSpec.Builder =
+        FileSpec.builder(model.packageName, className).addType(buildUpdaterType())
 
     private fun buildUpdaterType(): TypeSpec =
         TypeSpec.classBuilder(className).apply {
