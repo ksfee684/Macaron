@@ -40,7 +40,11 @@ class MacaronProcessor : AbstractProcessor() {
     private fun buildCollectionControllers(types: Set<Element>, context: GeneratorContext) {
         types
             .filterIsInstance<TypeElement>()
-            .forEach { buildWriters(CollectionModel(context, it)) }
+            .map { CollectionModel(context, it) }
+            .forEach { model ->
+                CollectionValidator.validate(model)
+                buildWriters(model)
+            }
     }
 
     private fun buildWriters(collectionModel: CollectionModel) {
