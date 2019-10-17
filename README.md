@@ -1,4 +1,4 @@
-# Macaron
+# Macaron [![Actions Status](https://github.com/ksfee684/Macaron/workflows/Master%20Check/badge.svg)](https://github.com/ksfee684/Macaron/actions)
 
 Macaron is a generator library of [Firebase Firestore](https://firebase.google.com/docs/firestore) for Android.
 It generates CRUD utilities from Firestore models by annotation processing.
