@@ -1,5 +1,5 @@
 object Version {
-    const val Kotlin = "1.3.50"
+    const val Kotlin = "1.3.61"
     const val Core = "1.0.2"
     const val AppCompat = "1.0.2"
     const val ConstraintLayout = "1.1.3"
