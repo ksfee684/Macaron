@@ -12,6 +12,7 @@ import org.ksfee.android.macaron.R
 import org.ksfee.android.macaron.sample.model.User
 import org.ksfee.android.macaron.sample.model.UserQuery
 import org.ksfee.android.macaron.sample.model.UserUpdater
+import org.ksfee.android.rx_bind.rx
 
 class UserDetailActivity : AppCompatActivity() {
 
@@ -33,6 +34,7 @@ class UserDetailActivity : AppCompatActivity() {
     private fun fetchUser() {
         UserQuery
             .document
+            .rx
             .getAsSingle(documentPath)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
@@ -57,6 +59,7 @@ class UserDetailActivity : AppCompatActivity() {
             .updateAge(age_edit_text.text.toString().toLong())
             .updateDescription(description_edit_text.text.toString())
             .updateCreatedAt(created_at_edit_text.text.toString().toLong())
+            .rx
             .updateAsSingle()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())

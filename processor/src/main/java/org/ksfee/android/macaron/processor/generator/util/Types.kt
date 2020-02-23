@@ -36,14 +36,14 @@ object Types {
 
     // library module
     object Controller {
-        val RxCollectionCreator =
-            ClassName("org.ksfee.android.macaron.library.controller.rx", "RxCollectionCreator")
-        val RxCollectionQuery =
-            ClassName("org.ksfee.android.macaron.library.controller.rx", "RxCollectionQuery")
-        val RxDocumentQuery =
-            ClassName("org.ksfee.android.macaron.library.controller.rx", "RxDocumentQuery")
-        val RxCollectionUpdater =
-            ClassName("org.ksfee.android.macaron.library.controller.rx", "RxCollectionUpdater")
+        val CollectionCreator =
+            ClassName("org.ksfee.android.macaron.library.controller", "CollectionCreator")
+        val CollectionQuery =
+            ClassName("org.ksfee.android.macaron.library.controller", "CollectionQuery")
+        val DocumentQuery =
+            ClassName("org.ksfee.android.macaron.library.controller", "DocumentQuery")
+        val CollectionUpdater =
+            ClassName("org.ksfee.android.macaron.library.controller", "CollectionUpdater")
     }
 
     object Exception {

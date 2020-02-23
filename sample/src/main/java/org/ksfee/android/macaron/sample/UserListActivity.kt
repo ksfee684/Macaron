@@ -20,6 +20,7 @@ import org.ksfee.android.macaron.R
 import org.ksfee.android.macaron.sample.model.User
 import org.ksfee.android.macaron.sample.model.UserCreator
 import org.ksfee.android.macaron.sample.model.UserQuery
+import org.ksfee.android.rx_bind.rx
 import java.util.*
 
 class UserListActivity : AppCompatActivity() {
@@ -31,6 +32,7 @@ class UserListActivity : AppCompatActivity() {
 
         fab.setOnClickListener {
             UserCreator
+                .rx
                 .createAsSingle(
                     User(name = "Mike", age = 25, description = null, createdAt = Date().time)
                 )
@@ -50,6 +52,7 @@ class UserListActivity : AppCompatActivity() {
     private fun fetchUsers() {
         UserQuery
             .collection
+            .rx
             .getAsSingle()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
@@ -57,6 +60,7 @@ class UserListActivity : AppCompatActivity() {
                 user_list.adapter = UserAdapter(this@UserListActivity, it)
                 user_list.setOnItemLongClickListener { _, _, position, _ ->
                     (user_list.adapter.getItem(position) as User)
+                        .rx
                         .deleteAsCompletable()
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribeOn(Schedulers.io())

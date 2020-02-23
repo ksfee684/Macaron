@@ -10,7 +10,7 @@ abstract class Controller<T, R> {
         taskMap[task.hashCode()] = task.apply { addOnCompleteListener { dequeueTask(it) } }
     }
 
-    protected fun dequeueTask(task: Task<T>) {
+    private fun dequeueTask(task: Task<T>) {
         taskMap.remove(task.hashCode())
     }
 

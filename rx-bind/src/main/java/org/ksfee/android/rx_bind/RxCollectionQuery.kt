@@ -1,23 +1,26 @@
-package org.ksfee.android.macaron.library.controller.rx
+package org.ksfee.android.rx_bind
 
 import com.google.android.gms.tasks.OnCanceledListener
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import io.reactivex.Observable
 import io.reactivex.Single
-import org.ksfee.android.macaron.library.controller.DocumentQuery
-import org.ksfee.android.macaron.library.controller.rx.exception.TaskCancelException
-import org.ksfee.android.macaron.library.controller.rx.exception.TaskFailureException
+import org.ksfee.android.macaron.library.controller.CollectionQuery
 import org.ksfee.android.macaron.library.model.CollectionModel
+import org.ksfee.android.rx_bind.exception.TaskCancelException
+import org.ksfee.android.rx_bind.exception.TaskFailureException
 
-abstract class RxDocumentQuery<R : CollectionModel>(
-    collectionPath: String
-) : DocumentQuery<R>(collectionPath) {
+val <R : CollectionModel> CollectionQuery<R>.rx: RxCollectionQuery<R>
+    get() = RxCollectionQuery(this)
 
-    fun getAsObservable(documentPath: String) = Observable.create<R> { emitter ->
-        get(documentPath)
-            .addOnSuccessListener(OnSuccessListener {
-                emitter.onNext(it)
+class RxCollectionQuery<R : CollectionModel>(
+    private val collectionQuery: CollectionQuery<R>
+) {
+
+    fun getAsObservable() = Observable.create<R> { emitter ->
+        collectionQuery.get()
+            .addOnSuccessListener(OnSuccessListener { list ->
+                list.forEach { emitter.onNext(it) }
                 emitter.onComplete()
             })
             .addOnCanceledListener(OnCanceledListener {
@@ -28,8 +31,8 @@ abstract class RxDocumentQuery<R : CollectionModel>(
             })
     }
 
-    fun getAsSingle(documentPath: String) = Single.create<R> { emitter ->
-        get(documentPath)
+    fun getAsSingle() = Single.create<List<R>> { emitter ->
+        collectionQuery.get()
             .addOnSuccessListener(OnSuccessListener {
                 emitter.onSuccess(it)
             })

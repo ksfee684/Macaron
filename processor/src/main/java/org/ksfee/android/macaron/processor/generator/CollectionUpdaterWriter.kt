@@ -19,7 +19,7 @@ class CollectionUpdaterWriter(
     private fun buildUpdaterType(): TypeSpec =
         TypeSpec.classBuilder(className).apply {
             // super
-            superclass(Types.Controller.RxCollectionUpdater.parameterizedBy(model.type))
+            superclass(Types.Controller.CollectionUpdater.parameterizedBy(model.type))
             addSuperclassConstructorParameter(model.propertyName)
 
             // constructor

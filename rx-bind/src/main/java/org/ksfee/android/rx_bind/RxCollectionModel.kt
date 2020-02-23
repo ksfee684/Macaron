@@ -1,21 +1,21 @@
-package org.ksfee.android.macaron.library.controller.rx
+package org.ksfee.android.rx_bind
 
 import com.google.android.gms.tasks.OnCanceledListener
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
-import io.reactivex.Single
-import org.ksfee.android.macaron.library.controller.CollectionUpdater
-import org.ksfee.android.macaron.library.controller.rx.exception.TaskCancelException
-import org.ksfee.android.macaron.library.controller.rx.exception.TaskFailureException
+import io.reactivex.Completable
 import org.ksfee.android.macaron.library.model.CollectionModel
+import org.ksfee.android.rx_bind.exception.TaskCancelException
+import org.ksfee.android.rx_bind.exception.TaskFailureException
 
-abstract class RxCollectionUpdater<R : CollectionModel>(
-    model: R
-) : CollectionUpdater<R>(model) {
-    fun updateAsSingle() = Single.create<R> { emitter ->
-        update()
+val CollectionModel.rx: RxCollectionModel
+    get() = RxCollectionModel(this)
+
+class RxCollectionModel(private val collectionModel: CollectionModel) {
+    fun deleteAsCompletable() = Completable.create { emitter ->
+        collectionModel.delete()
             .addOnSuccessListener(OnSuccessListener {
-                emitter.onSuccess(it)
+                emitter.onComplete()
             })
             .addOnCanceledListener(OnCanceledListener {
                 emitter.onError(TaskCancelException())

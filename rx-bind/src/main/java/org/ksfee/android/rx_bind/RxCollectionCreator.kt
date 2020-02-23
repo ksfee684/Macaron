@@ -1,4 +1,4 @@
-package org.ksfee.android.macaron.library.controller.rx
+package org.ksfee.android.rx_bind
 
 import com.google.android.gms.tasks.OnCanceledListener
 import com.google.android.gms.tasks.OnCompleteListener
@@ -7,16 +7,18 @@ import com.google.android.gms.tasks.OnSuccessListener
 import io.reactivex.Observable
 import io.reactivex.Single
 import org.ksfee.android.macaron.library.controller.CollectionCreator
-import org.ksfee.android.macaron.library.controller.rx.exception.TaskCancelException
-import org.ksfee.android.macaron.library.controller.rx.exception.TaskFailureException
 import org.ksfee.android.macaron.library.model.CollectionModel
+import org.ksfee.android.rx_bind.exception.TaskCancelException
+import org.ksfee.android.rx_bind.exception.TaskFailureException
 
-abstract class RxCollectionCreator<R : CollectionModel>(
-    collectionPath: String
-) : CollectionCreator<R>(collectionPath) {
+val <R : CollectionModel> CollectionCreator<R>.rx: RxCollectionCreator<R>
+    get() = RxCollectionCreator(this)
 
+class RxCollectionCreator<R : CollectionModel>(
+    private val collectionCreator: CollectionCreator<R>
+) {
     fun createAsSingle(model: R) = Single.create<R> { emitter ->
-        create(model)
+        collectionCreator.create(model)
             .addOnSuccessListener(OnSuccessListener {
                 emitter.onSuccess(it)
             })
@@ -29,7 +31,7 @@ abstract class RxCollectionCreator<R : CollectionModel>(
     }
 
     fun createAsSingle(model: R, documentPath: String) = Single.create<R> { emitter ->
-        create(model, documentPath)
+        collectionCreator.create(model, documentPath)
             .addOnSuccessListener(OnSuccessListener {
                 emitter.onSuccess(it)
             })
@@ -43,7 +45,7 @@ abstract class RxCollectionCreator<R : CollectionModel>(
 
     fun createAllAsObservable(models: Collection<R>) = Observable.create<R> { emitter ->
         models.forEachIndexed { i, model ->
-            create(model)
+            collectionCreator.create(model)
                 .addOnSuccessListener(OnSuccessListener {
                     emitter.onNext(it)
                 })
