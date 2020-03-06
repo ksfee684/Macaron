@@ -8,8 +8,6 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 1
-        versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -27,4 +25,15 @@ dependencies {
 
     implementation Kotlin.StdLib
     implementation CommonLib.RxJava
+}
+
+apply plugin: 'com.novoda.bintray-release'
+
+publish {
+    userOrg = 'ksfee'
+    groupId = 'org.ksfee.android'
+    artifactId = 'macaron-rx'
+    publishVersion = '0.0.1'
+    desc = ''
+    website = 'https://github.com/ksfee684/Macaron'
 }
