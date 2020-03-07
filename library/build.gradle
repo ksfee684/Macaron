@@ -42,7 +42,7 @@ apply plugin: 'com.novoda.bintray-release'
 
 publish {
     userOrg = 'ksfee'
-    groupId = 'org.ksfee.android'
+    groupId = 'org.ksfee.android.macaron'
     artifactId = 'macaron'
     publishVersion = '0.0.1'
     desc = ''

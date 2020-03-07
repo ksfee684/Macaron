@@ -16,3 +16,14 @@ dependencies {
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
+
+apply plugin: 'com.novoda.bintray-release'
+
+publish {
+    userOrg = 'ksfee'
+    groupId = 'org.ksfee.android.macaron'
+    artifactId = 'processor'
+    publishVersion = '0.0.1'
+    desc = ''
+    website = 'https://github.com/ksfee684/Macaron'
+}

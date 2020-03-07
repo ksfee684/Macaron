@@ -31,8 +31,8 @@ apply plugin: 'com.novoda.bintray-release'
 
 publish {
     userOrg = 'ksfee'
-    groupId = 'org.ksfee.android'
-    artifactId = 'macaron-rx'
+    groupId = 'org.ksfee.android.macaron'
+    artifactId = 'rx-bind'
     publishVersion = '0.0.1'
     desc = ''
     website = 'https://github.com/ksfee684/Macaron'
